@@ -40,8 +40,8 @@ select.filter:focus{border-color:#4a4f7a}
 table{width:100%;border-collapse:collapse;font-size:.78rem}
 thead th{background:#0d0f1c;color:#555b7e;font-weight:600;text-transform:uppercase;font-size:.65rem;letter-spacing:.8px;padding:10px 14px;text-align:left;position:sticky;top:0;z-index:2;cursor:pointer;user-select:none;white-space:nowrap}
 thead th:hover{color:#9ba3cc}
-thead th.sorted-asc::after{content:' \u2191'}
-thead th.sorted-desc::after{content:' \u2193'}
+thead th.sorted-asc::after{content:' \2191'}
+thead th.sorted-desc::after{content:' \2193'}
 tbody tr{border-bottom:1px solid #181b2e;transition:background .15s}
 tbody tr:hover{background:#181b2e}
 tbody td{padding:8px 14px;color:#9ba3cc;white-space:nowrap}
@@ -81,9 +81,6 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
 .rval{font-size:1.5rem;font-weight:700;color:#fff}
 .rval.hero{color:#818cf8}
 .runit{font-size:.68rem;color:#555b7e;margin-top:2px}
-.calc-formulas{display:flex;flex-direction:column;gap:6px;margin-top:16px}
-.calc-formula{font-size:.72rem;color:#555b7e;background:#0d0f1c;border:1px solid #1a1d30;border-radius:8px;padding:8px 12px;font-family:'Courier New',monospace}
-.calc-formula span{color:#818cf8}
 .calc-assumptions{margin-top:16px;padding:12px 14px;border-left:2px solid #2e3254;border-radius:0 8px 8px 0;background:#0d0f1c}
 .calc-assumptions p{font-size:.72rem;color:#555b7e;margin-bottom:5px;display:flex;align-items:flex-start;gap:8px}
 .calc-assumptions p:last-child{margin-bottom:0}
@@ -94,8 +91,14 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
 .fatigue-slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid #13152a}
 .fatigue-slider-row input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid #13152a}
 .fatigue-threshold-val{font-size:.92rem;font-weight:700;color:#f59e0b;min-width:42px;text-align:right}
-
-/* Upload screen */
+.ai-insight{background:#0d0f1c;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px}
+.ai-insight:last-child{margin-bottom:0}
+.ai-insight-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.9px;color:#6366f1;font-weight:700;margin-bottom:4px}
+.ai-insight p{color:#9ba3cc;font-size:.82rem;line-height:1.6;margin:0}
+.ai-insight strong{color:#c8cde8}
+.ai-highlight{color:#10b981;font-weight:600}
+.ai-warn{color:#f59e0b;font-weight:600}
+.ai-danger{color:#f43f5e;font-weight:600}
 #uploadScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:40px}
 .upload-card{background:#13152a;border:1px solid #212440;border-radius:18px;padding:48px;max-width:700px;width:100%;text-align:center}
 .upload-card h2{font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:8px}
@@ -122,25 +125,19 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
 </head>
 <body>
 
-<!-- ═══════════════════════ UPLOAD SCREEN ═══════════════════════ -->
 <div id="uploadScreen">
   <div class="upload-card">
     <h2>Creative Churn Analysis</h2>
     <p>Upload your ad performance data to generate a full churn analysis dashboard</p>
-
     <div class="drop-zone" id="dropZone">
       <div class="drop-zone-text">Drop CSV or JSON file here</div>
       <div class="drop-zone-sub">or click to browse</div>
     </div>
     <input type="file" id="fileInput" accept=".csv,.json,.tsv" style="display:none"/>
-
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
       <button class="upload-btn secondary" onclick="loadDemo()">Load Demo Data</button>
     </div>
-
     <div class="error-msg" id="uploadError"></div>
-
-    <!-- Field mapping (shown after file parse) -->
     <div class="field-map" id="fieldMap" style="display:none">
       <h3>Map your columns</h3>
       <div class="field-row"><label>Date</label><select id="map_date"></select></div>
@@ -153,24 +150,15 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
         <button class="upload-btn" onclick="applyMapping()">Build Dashboard</button>
       </div>
     </div>
-
     <div class="format-info">
       <strong style="color:#c8cde8">Expected columns:</strong><br/>
-      <code>Date</code> (YYYY-MM-DD) &middot;
-      <code>Ad_name</code> &middot;
-      <code>Cost_GBP</code> (spend amount) &middot;
-      <code>Impressions</code> &middot;
-      <code>Link_clicks</code> &middot;
-      <code>First_spend_month</code> (YYYY-MM cohort key)<br/><br/>
-      Column names are auto-mapped. If your columns differ, you can remap them after upload.
-      The cohort column is optional &mdash; it will be auto-derived from each ad's earliest date if missing.
+      <code>Date</code> (YYYY-MM-DD) &middot; <code>Ad_name</code> &middot; <code>Cost_GBP</code> (spend amount) &middot; <code>Impressions</code> &middot; <code>Link_clicks</code> &middot; <code>First_spend_month</code> (YYYY-MM cohort key)<br/><br/>
+      Column names are auto-mapped. If your columns differ, you can remap them after upload. The cohort column is optional &mdash; it will be auto-derived from each ad's earliest date if missing.
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════ DASHBOARD SCREEN ═══════════════════════ -->
 <div id="dashboardScreen">
-
 <div class="topbar">
   <div>
     <h1 id="dashTitle">Creative Churn Analysis</h1>
@@ -180,7 +168,7 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
   <div>
     <button class="upload-btn secondary" style="font-size:.72rem;padding:6px 14px" onclick="resetDashboard()">Load New Data</button>
     <select class="currency-select" id="currencySelect" onchange="rebuildDashboard()">
-      <option value="GBP">£ GBP</option>
+      <option value="GBP">&pound; GBP</option>
       <option value="USD">$ USD</option>
       <option value="EUR">&euro; EUR</option>
     </select>
@@ -189,6 +177,17 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
 
 <div class="page">
   <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card" id="aiSummaryCard">
+    <div class="card-hdr">
+      <div>
+        <div class="card-title">&#x2728; AI Summary</div>
+        <div class="card-sub">Automated interpretation of your cohort data</div>
+      </div>
+      <button class="trend-btn" id="summaryRefreshBtn" onclick="buildAISummary()"><span class="tdot" style="background:#818cf8"></span> Refresh</button>
+    </div>
+    <div id="aiSummaryBody" style="font-size:.82rem;color:#9ba3cc;line-height:1.7"></div>
+  </div>
 
   <div class="card">
     <div class="card-hdr">
@@ -242,7 +241,7 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
       <div class="calc-section-title"><span class="calc-step">1</span> Cohort inputs</div>
       <div class="calc-section-sub">Enter figures from your reference cohort &mdash; or auto-fill from the graph above</div>
       <div class="calc-grid">
-        <div class="calc-field"><label>Ads launched in cohort month</label><input type="number" id="calc_adsLaunched" value="0" min="1" oninput="calcAds()"></div>
+        <div class="calc-field"><label>Ads launched in cohort</label><input type="number" id="calc_adsLaunched" value="0" min="1" oninput="calcAds()"></div>
         <div class="calc-field"><label>Cohort spend before fatigue</label><input type="number" id="calc_cohortSpend" value="0" min="0" oninput="calcAds()"></div>
         <div class="calc-field"><label>Total account spend since cohort launch</label><input type="number" id="calc_totalSpend" value="0" min="0" oninput="calcAds()"></div>
         <div class="calc-field"><label>Days to fatigue (from launch)</label><input type="number" id="calc_daysToFatigue" value="0" min="1" oninput="calcAds()"></div>
@@ -278,7 +277,7 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
 
   <div class="two-col">
     <div class="card">
-      <div class="card-hdr"><div><div class="card-title">Cohort Share of Total Spend</div><div class="card-sub">% of total spend by creative launch month</div></div></div>
+      <div class="card-hdr"><div><div class="card-title">Cohort Share of Total Spend</div><div class="card-sub">% of total spend by creative cohort</div></div></div>
       <div style="position:relative;height:300px"><canvas id="donutChart"></canvas></div>
     </div>
     <div class="card">
@@ -326,11 +325,8 @@ let COHORTS = [];
 let COHORT_MAP = {};
 let CURRENCY = { symbol: '\u00a3', code: 'GBP' };
 let chartInstances = {};
-let parsedRawData = null; // temp store between parse and mapping
+let parsedRawData = null;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// PALETTE — auto-assigned to cohorts
-// ═══════════════════════════════════════════════════════════════════════════════
 const PALETTE = [
   { color: '#f97316', light: '#fed7aa' },
   { color: '#10b981', light: '#a7f3d0' },
@@ -347,24 +343,17 @@ const PALETTE = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FILE UPLOAD & PARSING
+// FILE UPLOAD
 // ═══════════════════════════════════════════════════════════════════════════════
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
-
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault(); dropZone.classList.remove('dragover');
-  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
 fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
 
-function showError(msg) {
-  const el = document.getElementById('uploadError');
-  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
-}
+function showError(msg) { const el = document.getElementById('uploadError'); el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
 
 function handleFile(file) {
   showError('');
@@ -377,25 +366,19 @@ function handleFile(file) {
         rows = JSON.parse(e.target.result);
         if (!Array.isArray(rows)) throw new Error('JSON must be an array of objects');
       } else {
-        // Strip leading empty/garbage rows: find the first row that looks like a header
         let text = e.target.result;
         const lines = text.split(/\r?\n/);
         let headerIdx = 0;
         for (let i = 0; i < Math.min(lines.length, 20); i++) {
           const trimmed = lines[i].replace(/,/g, '').trim();
-          if (trimmed.length === 0) continue; // skip empty rows
-          // Found a row with content — treat it as the header
-          headerIdx = i;
-          break;
+          if (trimmed.length === 0) continue;
+          headerIdx = i; break;
         }
-        if (headerIdx > 0) {
-          text = lines.slice(headerIdx).join('\n');
-        }
+        if (headerIdx > 0) text = lines.slice(headerIdx).join('\n');
         const result = Papa.parse(text, { header: true, skipEmptyLines: true, dynamicTyping: true });
         if (result.errors.length > 2) throw new Error('CSV parse errors: ' + result.errors[0].message);
         rows = result.data;
       }
-      // Filter out rows where every value is null/empty
       rows = rows.filter(r => Object.values(r).some(v => v !== null && v !== '' && v !== undefined));
       if (!rows.length) throw new Error('No data rows found');
       parsedRawData = rows;
@@ -412,135 +395,96 @@ function showFieldMapping(columns) {
     map_ad_name: ['ad_name','ad name','creative','creative_name','ad','name'],
     map_cost: ['cost_gbp','cost (gbp)','cost','spend','cost (usd)','cost (eur)','amount','cost_usd','cost_eur','total_spend','amount_spent'],
     map_impressions: ['impressions','imps','views'],
-    map_clicks: ['link_clicks','clicks','link clicks','link_clicks','outbound_clicks'],
+    map_clicks: ['link_clicks','clicks','link clicks','outbound_clicks'],
     map_cohort: ['first_spend_month','first spend month','cohort','launch_month','first_month','first month']
   };
-  const colsLower = columns.map(c => c.toLowerCase().trim());
-  // Also try partial/substring matching as a fallback
   const partialHints = {
-    map_date: ['date'],
-    map_ad_name: ['ad'],
-    map_cost: ['cost','spend'],
-    map_impressions: ['impress'],
-    map_clicks: ['click'],
-    map_cohort: ['cohort','first spend','first_spend']
+    map_date: ['date'], map_ad_name: ['ad'], map_cost: ['cost','spend'],
+    map_impressions: ['impress'], map_clicks: ['click'], map_cohort: ['cohort','first spend','first_spend']
   };
+  const colsLower = columns.map(c => c.toLowerCase().trim());
 
   mapFields.forEach(id => {
     const sel = document.getElementById(id);
     sel.innerHTML = '<option value="">(none)</option>';
-    columns.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c; opt.textContent = c; sel.appendChild(opt);
-    });
-    // Auto-select best match: exact first, then partial substring
+    columns.forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; sel.appendChild(opt); });
     const hints = autoHints[id] || [];
     let matched = false;
-    for (const h of hints) {
-      const idx = colsLower.indexOf(h);
-      if (idx >= 0) { sel.value = columns[idx]; matched = true; break; }
-    }
-    if (!matched) {
-      const pHints = partialHints[id] || [];
-      for (const ph of pHints) {
-        const idx = colsLower.findIndex(c => c.includes(ph));
-        if (idx >= 0) { sel.value = columns[idx]; break; }
-      }
-    }
+    for (const h of hints) { const idx = colsLower.indexOf(h); if (idx >= 0) { sel.value = columns[idx]; matched = true; break; } }
+    if (!matched) { const pHints = partialHints[id] || []; for (const ph of pHints) { const idx = colsLower.findIndex(c => c.includes(ph)); if (idx >= 0) { sel.value = columns[idx]; break; } } }
   });
   document.getElementById('fieldMap').style.display = 'block';
 }
 
 function applyMapping() {
   if (!parsedRawData) return showError('No data loaded');
-  const dateCol = document.getElementById('map_date').value;
-  const adCol   = document.getElementById('map_ad_name').value;
-  const costCol = document.getElementById('map_cost').value;
-  const impCol  = document.getElementById('map_impressions').value;
-  const clickCol= document.getElementById('map_clicks').value;
+  const dateCol   = document.getElementById('map_date').value;
+  const adCol     = document.getElementById('map_ad_name').value;
+  const costCol   = document.getElementById('map_cost').value;
+  const impCol    = document.getElementById('map_impressions').value;
+  const clickCol  = document.getElementById('map_clicks').value;
   const cohortCol = document.getElementById('map_cohort').value;
-
   if (!dateCol || !costCol) return showError('Date and Cost columns are required');
 
-  // Build normalized RAW array
   const adFirstDate = {};
   const rows = parsedRawData.map(r => {
     const ad = adCol ? (r[adCol] || 'Unknown') : 'Unknown';
     const date = String(r[dateCol]).slice(0, 10);
     if (!adFirstDate[ad] || date < adFirstDate[ad]) adFirstDate[ad] = date;
-    return {
-      Date: date,
-      Ad_name: ad,
-      Cost_GBP: parseFloat(r[costCol]) || 0,
-      Impressions: impCol ? (parseInt(r[impCol]) || 0) : 0,
-      Link_clicks: clickCol ? (parseInt(r[clickCol]) || 0) : 0,
-      _rawCohort: cohortCol ? (r[cohortCol] || '') : ''
-    };
+    return { Date: date, Ad_name: ad, Cost_GBP: parseFloat(r[costCol]) || 0,
+             Impressions: impCol ? (parseInt(r[impCol]) || 0) : 0,
+             Link_clicks: clickCol ? (parseInt(r[clickCol]) || 0) : 0,
+             _rawCohort: cohortCol ? (r[cohortCol] || '') : '' };
   });
-
-  // Assign cohorts
   rows.forEach(r => {
-    if (r._rawCohort) {
-      r.First_spend_month = String(r._rawCohort).slice(0, 7);
-    } else {
-      const fd = adFirstDate[r.Ad_name] || r.Date;
-      r.First_spend_month = fd.slice(0, 7);
-    }
+    if (r._rawCohort) r.First_spend_month = String(r._rawCohort).slice(0, 7);
+    else { const fd = adFirstDate[r.Ad_name] || r.Date; r.First_spend_month = fd.slice(0, 7); }
     delete r._rawCohort;
   });
-
   initDashboard(rows);
 }
 
 function loadDemo() {
-  // Generate demo data
-  const ads = ['Brand_Video_30s','NoBots_Static_Plain','SmartestNotepad_Static','Focus_Video_15s','Usefulness_Video_30s',
-               'TalkNow_Static','MonkeyMeme_Static','LivingInFuture_Static','BeforeAfter_Static','Focus_Static_Plain',
-               'NoBots_Video_15s','Brand_Static_Plain','Usefulness_Static','NewYear_Video','Resolution_Static',
-               'Productivity_Video','DeepWork_Static','AIHelper_Video','CalendarSync_Static','MeetingNotes_Video',
-               'VoiceFirst_Static','Collab_Video','Template_Static','Workflow_Video','Integration_Static'];
-  const cohorts = ['2025-10','2025-11','2025-12','2026-01','2026-02','2026-03'];
+  const cohorts = ['Dataset 1','Dataset 2','Dataset 3','Dataset 4','Dataset 5','Dataset 6'];
+  const cohortStarts = ['2025-10-01','2025-11-01','2025-12-01','2026-01-01','2026-02-01','2026-03-01'];
+  const adsPerCohort = [5, 5, 4, 4, 4, 3];
   const rows = [];
-  const startDate = new Date('2025-10-01');
   const endDate = new Date('2026-03-31');
 
-  ads.forEach((ad, ai) => {
-    const cohortIdx = Math.min(Math.floor(ai / 4), cohorts.length - 1);
-    const cohort = cohorts[cohortIdx];
-    const cohortStart = new Date(cohort + '-01');
-    const launchDay = new Date(cohortStart);
-    launchDay.setDate(launchDay.getDate() + Math.floor(Math.random() * 20));
-
-    for (let d = new Date(launchDay); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const daysSinceLaunch = (d - launchDay) / 86400000;
-      const peak = 20 + Math.random() * 80;
-      const peakDay = 15 + Math.random() * 30;
-      const sigma = 20 + Math.random() * 40;
-      let spend = peak * Math.exp(-0.5 * Math.pow((daysSinceLaunch - peakDay) / sigma, 2));
-      spend *= (0.7 + Math.random() * 0.6);
-      if (spend < 0.1) continue;
-      rows.push({
-        Date: d.toISOString().slice(0, 10),
-        Ad_name: ad,
-        Cost_GBP: +spend.toFixed(2),
-        Impressions: Math.round(spend * (8 + Math.random() * 15)),
-        Link_clicks: Math.round(spend * (0.5 + Math.random() * 2)),
-        First_spend_month: cohort
-      });
+  cohorts.forEach((cohort, ci) => {
+    const n = adsPerCohort[ci];
+    for (let ai = 0; ai < n; ai++) {
+      const adName = `Dataset ${ci * 5 + ai + 1}`;
+      const cohortStart = new Date(cohortStarts[ci]);
+      const launchDay = new Date(cohortStart);
+      launchDay.setDate(launchDay.getDate() + Math.floor(Math.random() * 15));
+      const peak   = 30 + Math.random() * 120;
+      const peakDay = 20 + Math.random() * 35;
+      const sigmaL = 12 + Math.random() * 18;
+      const sigmaR = 25 + Math.random() * 40;
+      for (let d = new Date(launchDay); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const x = (d - launchDay) / 86400000;
+        const sigma = x < peakDay ? sigmaL : sigmaR;
+        let spend = peak * Math.exp(-0.5 * Math.pow((x - peakDay) / sigma, 2));
+        spend *= (0.8 + Math.random() * 0.4);
+        if (spend < 0.5) continue;
+        rows.push({ Date: d.toISOString().slice(0, 10), Ad_name: adName,
+                    Cost_GBP: +spend.toFixed(2),
+                    Impressions: Math.round(spend * (10 + Math.random() * 12)),
+                    Link_clicks: Math.round(spend * (0.8 + Math.random() * 1.5)),
+                    First_spend_month: cohort });
+      }
     }
   });
   initDashboard(rows);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DASHBOARD INITIALIZATION
+// DASHBOARD INIT
 // ═══════════════════════════════════════════════════════════════════════════════
 function resetDashboard() {
-  // Destroy all charts
   Object.values(chartInstances).forEach(c => { if (c && c.destroy) c.destroy(); });
-  chartInstances = {};
-  window._trendChart = null;
-  window._trendState = null;
+  chartInstances = {}; window._trendChart = null; window._trendState = null;
   document.getElementById('dashboardScreen').style.display = 'none';
   document.getElementById('uploadScreen').style.display = 'flex';
   document.getElementById('fieldMap').style.display = 'none';
@@ -549,25 +493,21 @@ function resetDashboard() {
 
 function initDashboard(rows) {
   RAW = rows;
-
-  // Build cohorts from data
   const cohortKeys = [...new Set(RAW.map(r => r.First_spend_month))].sort();
   COHORTS = cohortKeys.map((key, i) => {
     const p = PALETTE[i % PALETTE.length];
-    const d = new Date(key + '-01');
-    const label = d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }).replace(' ', " '");
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const isYearMonth = /^\d{4}-\d{2}$/.test(key);
+    const label = isYearMonth
+      ? (() => { const [yr, mo] = key.split('-'); return `${monthNames[+mo - 1]} '${yr.slice(2)}`; })()
+      : key;
     return { key, label, color: p.color, light: p.light };
   });
   COHORT_MAP = Object.fromEntries(COHORTS.map(c => [c.key, c]));
-
-  // Currency
   const cs = document.getElementById('currencySelect').value;
   CURRENCY = cs === 'USD' ? { symbol: '$', code: 'USD' } : cs === 'EUR' ? { symbol: '\u20ac', code: 'EUR' } : { symbol: '\u00a3', code: 'GBP' };
-
-  // Switch screens
   document.getElementById('uploadScreen').style.display = 'none';
   document.getElementById('dashboardScreen').style.display = 'block';
-
   buildDashboard();
 }
 
@@ -582,24 +522,18 @@ function rebuildDashboard() {
 
 function buildDashboard() {
   const sym = CURRENCY.symbol;
-
-  // ── Header badges ──────────────────────────────────────────────────────
   const uniqueAds = new Set(RAW.map(r => r.Ad_name)).size;
-  const uniqueDates = new Set(RAW.map(r => r.Date));
-  const datesSorted = [...uniqueDates].sort();
+  const datesSorted = [...new Set(RAW.map(r => r.Date))].sort();
   const dayCount = datesSorted.length;
   const dateRange = dayCount > 0 ? `${fmtMonthYear(datesSorted[0])} \u2013 ${fmtMonthYear(datesSorted[datesSorted.length-1])}` : '';
 
   document.getElementById('dashTitle').textContent = 'Creative Churn Analysis';
   document.getElementById('dashSub').textContent = `Ad spend by creative cohort \u00b7 ${dateRange}`;
   document.getElementById('topBadges').innerHTML = [
-    `${RAW.length.toLocaleString()} Data Points`,
-    `${uniqueAds} Creatives`,
-    `${COHORTS.length} Cohorts`,
-    `${dayCount} Days`
+    `${RAW.length.toLocaleString()} Data Points`, `${uniqueAds} Creatives`,
+    `${COHORTS.length} Cohorts`, `${dayCount} Days`
   ].map(t => `<span class="badge">${t}</span>`).join('');
 
-  // ── KPIs ──────────────────────────────────────────────────────────────
   const grandTotal = RAW.reduce((s, r) => s + r.Cost_GBP, 0);
   const byDay = {};
   RAW.forEach(r => byDay[r.Date] = (byDay[r.Date] || 0) + r.Cost_GBP);
@@ -609,46 +543,37 @@ function buildDashboard() {
     return t > best.val ? { label: c.label, val: t } : best;
   }, { label: '', val: 0 });
 
-  const kpis = [
-    { l: 'Total Spend', v: `${sym}${fmtK(grandTotal)}`, s: dateRange },
-    { l: 'Peak Daily', v: `${sym}${Math.round(peakDay).toLocaleString()}`, s: 'Single day high' },
-    { l: 'Top Cohort', v: topCohort.label, s: `${sym}${fmtK(topCohort.val)} spend` },
-    { l: 'Data Points', v: RAW.length.toLocaleString(), s: 'Individual ad records' },
-    { l: 'Unique Ads', v: uniqueAds.toLocaleString(), s: 'Across all cohorts' },
-    { l: 'Days Tracked', v: dayCount.toString(), s: `${datesSorted[0] || ''} \u2192 ${datesSorted[datesSorted.length-1] || ''}` }
-  ];
-  document.getElementById('kpiRow').innerHTML = kpis.map(k =>
-    `<div class="kpi"><div class="kpi-l">${k.l}</div><div class="kpi-v">${k.v}</div><div class="kpi-s">${k.s}</div></div>`
-  ).join('');
+  document.getElementById('kpiRow').innerHTML = [
+    { l: 'Total Spend',  v: `${sym}${fmtK(grandTotal)}`,                  s: dateRange },
+    { l: 'Peak Daily',   v: `${sym}${Math.round(peakDay).toLocaleString()}`, s: 'Single day high' },
+    { l: 'Top Cohort',   v: topCohort.label,                              s: `${sym}${fmtK(topCohort.val)} spend` },
+    { l: 'Data Points',  v: RAW.length.toLocaleString(),                  s: 'Individual ad records' },
+    { l: 'Unique Ads',   v: uniqueAds.toLocaleString(),                   s: 'Across all cohorts' },
+    { l: 'Days Tracked', v: dayCount.toString(),                          s: `${datesSorted[0] || ''} \u2192 ${datesSorted[datesSorted.length-1] || ''}` }
+  ].map(k => `<div class="kpi"><div class="kpi-l">${k.l}</div><div class="kpi-v">${k.v}</div><div class="kpi-s">${k.s}</div></div>`).join('');
 
-  // ── Pivot ────────────────────────────────────────────────────────────
   const { dates, pivot } = buildPivot(RAW);
   const labels = dates.map(fmtDate);
 
-  // ── Stacked area chart ───────────────────────────────────────────────
+  // Stacked chart
   const stackedDs = COHORTS.map(c => ({
     label: c.label + ' Creatives', data: pivot[c.key],
     backgroundColor: c.color + 'bb', borderColor: c.color,
     borderWidth: 1.5, fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 5
   }));
-
   chartInstances.stacked = new Chart(document.getElementById('stackedChart'), {
-    type: 'line',
-    data: { labels, datasets: stackedDs },
+    type: 'line', data: { labels, datasets: stackedDs },
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
-          titleColor: '#c8cde8', bodyColor: '#9ba3cc', padding: 12,
-          callbacks: {
-            label: c => ` ${c.dataset.label}: ${sym}${c.parsed.y.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`,
-            footer: items => items.length ? `  Total: ${sym}${items.reduce((s, i) => s + i.parsed.y, 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : ''
-          }
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
+        titleColor: '#c8cde8', bodyColor: '#9ba3cc', padding: 12,
+        callbacks: {
+          label: c => ` ${c.dataset.label}: ${sym}${c.parsed.y.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`,
+          footer: items => items.length ? `  Total: ${sym}${items.reduce((s, i) => s + i.parsed.y, 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : ''
         }
-      },
+      }},
       scales: {
         x: { stacked: true, grid: { color: '#181b2e' }, ticks: { color: '#555b7e', maxTicksLimit: 12, maxRotation: 0, font: { size: 10 } } },
         y: { stacked: true, grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` } }
@@ -656,7 +581,6 @@ function buildDashboard() {
     }
   });
 
-  // Legend
   const legendEl = document.getElementById('mainLegend');
   legendEl.innerHTML = '';
   COHORTS.forEach((c, i) => {
@@ -664,156 +588,104 @@ function buildDashboard() {
     const pct = ((total / grandTotal) * 100).toFixed(1);
     const el = document.createElement('div'); el.className = 'leg-item';
     el.innerHTML = `<div class="leg-dot" style="background:${c.color}"></div><span>${c.label} Creatives</span><span class="leg-val">${sym}${fmtK(total)}</span><span style="color:#555b7e">(${pct}%)</span>`;
-    el.onclick = () => {
-      const m = chartInstances.stacked.getDatasetMeta(i);
-      m.hidden = !m.hidden; chartInstances.stacked.update();
-      el.style.opacity = m.hidden ? '.3' : '1';
-    };
+    el.onclick = () => { const m = chartInstances.stacked.getDatasetMeta(i); m.hidden = !m.hidden; chartInstances.stacked.update(); el.style.opacity = m.hidden ? '.3' : '1'; };
     legendEl.appendChild(el);
   });
 
-  // ── Trend / Fatigue analysis ──────────────────────────────────────────
   buildTrendChart(dates, pivot, grandTotal);
 
-  // ── Donut ────────────────────────────────────────────────────────────
+  // Donut
   const cohortTotals = COHORTS.map(c => RAW.filter(r => r.First_spend_month === c.key).reduce((s, r) => s + r.Cost_GBP, 0));
   chartInstances.donut = new Chart(document.getElementById('donutChart'), {
     type: 'doughnut',
-    data: {
-      labels: COHORTS.map(c => c.label + ' Creatives'),
-      datasets: [{ data: cohortTotals, backgroundColor: COHORTS.map(c => c.color + 'cc'), borderColor: '#0d0f1c', borderWidth: 3, hoverOffset: 8 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '60%',
-      plugins: {
-        legend: { position: 'right', labels: { color: '#9ba3cc', font: { size: 11 }, boxWidth: 12, padding: 10 } },
+    data: { labels: COHORTS.map(c => c.label + ' Creatives'), datasets: [{ data: cohortTotals, backgroundColor: COHORTS.map(c => c.color + 'cc'), borderColor: '#0d0f1c', borderWidth: 3, hoverOffset: 8 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'right', labels: { color: '#9ba3cc', font: { size: 11 }, boxWidth: 12, padding: 10 } },
         tooltip: { backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
-          callbacks: { label: c => ` ${sym}${(c.parsed / 1000).toFixed(1)}K (${((c.parsed / grandTotal) * 100).toFixed(1)}%)` }
-        }
-      }
-    }
+          callbacks: { label: c => ` ${sym}${(c.parsed / 1000).toFixed(1)}K (${((c.parsed / grandTotal) * 100).toFixed(1)}%)` } } } }
   });
 
-  // ── Monthly bar ──────────────────────────────────────────────────────
-  const calMonthSet = new Set();
-  RAW.forEach(r => calMonthSet.add(r.Date.slice(0, 7)));
-  const calMonthKeys = [...calMonthSet].sort();
-  const calMonthLabels = calMonthKeys.map(k => { const d = new Date(k + '-01'); return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }); });
-
-  const monthlyDs = COHORTS.map(c => ({
-    label: c.label + ' Creatives',
-    data: calMonthKeys.map(m => +RAW.filter(r => r.First_spend_month === c.key && r.Date.slice(0, 7) === m).reduce((s, r) => s + r.Cost_GBP, 0).toFixed(2)),
-    backgroundColor: c.color + 'bb', borderColor: c.color, borderWidth: 1, borderRadius: 4
-  }));
-
+  // Monthly bar
+  const calMonthKeys = [...new Set(RAW.map(r => r.Date.slice(0, 7)))].sort();
+  const calMonthLabels = calMonthKeys.map(k => { const d = new Date(k + '-15'); return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }); });
   chartInstances.monthly = new Chart(document.getElementById('monthlyBar'), {
     type: 'bar',
-    data: { labels: calMonthLabels, datasets: monthlyDs },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
-          callbacks: { label: c => ` ${c.dataset.label}: ${sym}${(c.parsed.y / 1000).toFixed(1)}K` }
-        }
-      },
-      scales: {
-        x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 } } },
-        y: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` } }
-      }
-    }
+    data: { labels: calMonthLabels, datasets: COHORTS.map(c => ({
+      label: c.label + ' Creatives',
+      data: calMonthKeys.map(m => +RAW.filter(r => r.First_spend_month === c.key && r.Date.slice(0, 7) === m).reduce((s, r) => s + r.Cost_GBP, 0).toFixed(2)),
+      backgroundColor: c.color + 'bb', borderColor: c.color, borderWidth: 1, borderRadius: 4
+    }))},
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
+        callbacks: { label: c => ` ${c.dataset.label}: ${sym}${(c.parsed.y / 1000).toFixed(1)}K` } } },
+      scales: { x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 } } },
+                y: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` } } } }
   });
 
-  // ── Top 15 ads ──────────────────────────────────────────────────────
+  // Top 15
   const adTotals = {};
-  RAW.forEach(r => {
-    if (!adTotals[r.Ad_name]) adTotals[r.Ad_name] = { spend: 0, cohort: r.First_spend_month };
-    adTotals[r.Ad_name].spend += r.Cost_GBP;
-  });
+  RAW.forEach(r => { if (!adTotals[r.Ad_name]) adTotals[r.Ad_name] = { spend: 0, cohort: r.First_spend_month }; adTotals[r.Ad_name].spend += r.Cost_GBP; });
   const top15 = Object.entries(adTotals).sort((a, b) => b[1].spend - a[1].spend).slice(0, 15);
-  const top15Labels = top15.map(([name]) => name.length > 45 ? name.slice(0, 44) + '\u2026' : name);
-  const top15Values = top15.map(([, v]) => +v.spend.toFixed(2));
-  const top15Colors = top15.map(([, v]) => (COHORT_MAP[v.cohort] || { color: '#6366f1' }).color + 'cc');
-
   let activeAdFilter = null;
   chartInstances.topAds = new Chart(document.getElementById('topAdsChart'), {
     type: 'bar',
-    data: { labels: top15Labels, datasets: [{ label: 'Total Spend', data: top15Values, backgroundColor: top15Colors, borderColor: top15Colors.map(c => c.replace('cc', 'ff')), borderWidth: 1, borderRadius: 5 }] },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1, callbacks: { label: c => ` ${sym}${c.parsed.x.toLocaleString('en-GB', { maximumFractionDigits: 0 })}` } }
-      },
-      scales: {
-        x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 9 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` } },
-        y: { grid: { display: false }, ticks: { color: '#9ba3cc', font: { size: 9 } } }
-      },
+    data: { labels: top15.map(([n]) => n.length > 45 ? n.slice(0, 44) + '\u2026' : n),
+            datasets: [{ label: 'Total Spend', data: top15.map(([,v]) => +v.spend.toFixed(2)),
+              backgroundColor: top15.map(([,v]) => (COHORT_MAP[v.cohort] || { color: '#6366f1' }).color + 'cc'),
+              borderColor: top15.map(([,v]) => (COHORT_MAP[v.cohort] || { color: '#6366f1' }).color),
+              borderWidth: 1, borderRadius: 5 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
+        callbacks: { label: c => ` ${sym}${c.parsed.x.toLocaleString('en-GB', { maximumFractionDigits: 0 })}` } } },
+      scales: { x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 9 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` } },
+                y: { grid: { display: false }, ticks: { color: '#9ba3cc', font: { size: 9 } } } },
       onClick: (_, els) => {
         if (!els.length) activeAdFilter = null;
-        else {
-          const adName = top15[els[0].index][0];
-          activeAdFilter = activeAdFilter === adName ? null : adName;
-          document.getElementById('search').value = activeAdFilter || '';
-        }
+        else { const n = top15[els[0].index][0]; activeAdFilter = activeAdFilter === n ? null : n; document.getElementById('search').value = activeAdFilter || ''; }
         applyFilters();
       }
     }
   });
 
-  // ── Table ────────────────────────────────────────────────────────────
+  // Table
   document.getElementById('tableTitle').textContent = `All ${RAW.length.toLocaleString()} Records`;
   const cohortFilter = document.getElementById('cohortFilter');
   cohortFilter.innerHTML = '<option value="">All cohorts</option>';
-  COHORTS.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.key; opt.textContent = c.label;
-    cohortFilter.appendChild(opt);
-  });
+  COHORTS.forEach(c => { const o = document.createElement('option'); o.value = c.key; o.textContent = c.label; cohortFilter.appendChild(o); });
 
-  // Reset listeners
   const searchEl = document.getElementById('search');
-  const newSearch = searchEl.cloneNode(true);
-  searchEl.parentNode.replaceChild(newSearch, searchEl);
+  const newSearch = searchEl.cloneNode(true); searchEl.parentNode.replaceChild(newSearch, searchEl);
   newSearch.addEventListener('input', applyFilters);
-
-  const newFilter = cohortFilter.cloneNode(true);
-  cohortFilter.parentNode.replaceChild(newFilter, cohortFilter);
+  const newFilter = cohortFilter.cloneNode(true); cohortFilter.parentNode.replaceChild(newFilter, cohortFilter);
   newFilter.addEventListener('change', applyFilters);
-
   document.querySelectorAll('#mainTable thead th').forEach(th => {
-    const newTh = th.cloneNode(true);
-    th.parentNode.replaceChild(newTh, th);
+    const newTh = th.cloneNode(true); th.parentNode.replaceChild(newTh, th);
     newTh.addEventListener('click', () => {
       const col = newTh.dataset.col;
       if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
-      document.querySelectorAll('#mainTable thead th').forEach(t => t.classList.remove('sorted-asc', 'sorted-desc'));
+      document.querySelectorAll('#mainTable thead th').forEach(t => t.classList.remove('sorted-asc','sorted-desc'));
       newTh.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
       applyFilters();
     });
   });
-
   applyFilters();
   calcAds();
+  setTimeout(buildAISummary, 100);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
 function fmtK(v) { return v >= 1000 ? (v / 1000).toFixed(0) + 'K' : Math.round(v).toLocaleString(); }
-function fmtMonthYear(d) { const dt = new Date(d); return dt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }); }
-function fmtDate(d) { const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; const [, mo, dd] = d.split('-'); return `${m[+mo - 1]} ${+dd}`; }
+function fmtMonthYear(d) { const dt = new Date(d + 'T12:00:00Z'); return dt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }); }
+function fmtDate(d) { const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; const [,mo,dd] = d.split('-'); return `${m[+mo-1]} ${+dd}`; }
 
 function buildPivot(rows) {
   const dateSet = new Set(), spend = {};
-  rows.forEach(r => {
-    dateSet.add(r.Date);
-    const k = r.Date + '|' + r.First_spend_month;
-    spend[k] = (spend[k] || 0) + r.Cost_GBP;
-  });
+  rows.forEach(r => { dateSet.add(r.Date); const k = r.Date+'|'+r.First_spend_month; spend[k] = (spend[k]||0) + r.Cost_GBP; });
   const dates = [...dateSet].sort();
   const pivot = {};
-  COHORTS.forEach(c => pivot[c.key] = dates.map(d => +(spend[d + '|' + c.key] || 0).toFixed(2)));
+  COHORTS.forEach(c => pivot[c.key] = dates.map(d => +(spend[d+'|'+c.key]||0).toFixed(2)));
   return { dates, pivot };
 }
 
@@ -825,17 +697,12 @@ let currentPage = 1, sortCol = 'Date', sortDir = 1, filtered = [];
 
 function applyFilters() {
   const q = (document.getElementById('search').value || '').toLowerCase().trim();
-  const cohort = (document.getElementById('cohortFilter') || document.querySelector('#cohortFilter')).value;
+  const cohort = document.getElementById('cohortFilter').value;
   filtered = RAW.filter(r => {
     if (cohort && r.First_spend_month !== cohort) return false;
     if (q && !r.Ad_name.toLowerCase().includes(q)) return false;
     return true;
-  });
-  filtered.sort((a, b) => {
-    let av = a[sortCol], bv = b[sortCol];
-    if (typeof av === 'string') return av.localeCompare(bv) * sortDir;
-    return (av - bv) * sortDir;
-  });
+  }).sort((a, b) => { let av = a[sortCol], bv = b[sortCol]; return (typeof av === 'string' ? av.localeCompare(bv) : av - bv) * sortDir; });
   currentPage = 1; renderTable();
 }
 
@@ -843,414 +710,219 @@ function renderTable() {
   const sym = CURRENCY.symbol;
   const total = filtered.length;
   document.getElementById('rowCount').textContent = `${total.toLocaleString()} rows`;
-  const start = (currentPage - 1) * PAGE_SIZE, end = Math.min(start + PAGE_SIZE, total);
-  const slice = filtered.slice(start, end);
-  document.getElementById('tableBody').innerHTML = slice.map(r => {
+  const start = (currentPage-1)*PAGE_SIZE, end = Math.min(start+PAGE_SIZE, total);
+  document.getElementById('tableBody').innerHTML = filtered.slice(start, end).map(r => {
     const c = COHORT_MAP[r.First_spend_month] || { label: r.First_spend_month, color: '#6366f1', light: '#c7d2fe' };
-    return `<tr>
-      <td>${r.Date}</td>
-      <td title="${r.Ad_name}">${r.Ad_name.length > 55 ? r.Ad_name.slice(0, 54) + '\u2026' : r.Ad_name}</td>
+    return `<tr><td>${r.Date}</td><td title="${r.Ad_name}">${r.Ad_name.length>55?r.Ad_name.slice(0,54)+'\u2026':r.Ad_name}</td>
       <td><span class="cohort-pill" style="background:${c.color}22;color:${c.light};border:1px solid ${c.color}44">${c.label}</span></td>
-      <td class="num cost">${sym}${r.Cost_GBP.toFixed(2)}</td>
-      <td class="num">${r.Impressions.toLocaleString()}</td>
-      <td class="num">${r.Link_clicks.toLocaleString()}</td>
-    </tr>`;
+      <td class="num cost">${sym}${r.Cost_GBP.toFixed(2)}</td><td class="num">${r.Impressions.toLocaleString()}</td><td class="num">${r.Link_clicks.toLocaleString()}</td></tr>`;
   }).join('');
   renderPagination(total);
 }
 
 function renderPagination(total) {
-  const pages = Math.ceil(total / PAGE_SIZE);
-  const pg = document.getElementById('pagination');
+  const pages = Math.ceil(total/PAGE_SIZE), pg = document.getElementById('pagination');
   if (pages <= 1) { pg.innerHTML = ''; return; }
   let html = `<span class="pg-info">Page ${currentPage} of ${pages}</span>`;
   html += `<button class="pg-btn" onclick="goPage(1)">\u00ab</button>`;
-  html += `<button class="pg-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>\u2039</button>`;
-  const s = Math.max(1, currentPage - 2), e = Math.min(pages, currentPage + 2);
-  for (let p = s; p <= e; p++) html += `<button class="pg-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
-  html += `<button class="pg-btn" onclick="goPage(${currentPage + 1})" ${currentPage === pages ? 'disabled' : ''}>\u203a</button>`;
+  html += `<button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>\u2039</button>`;
+  for (let p = Math.max(1,currentPage-2); p <= Math.min(pages,currentPage+2); p++)
+    html += `<button class="pg-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  html += `<button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>\u203a</button>`;
   html += `<button class="pg-btn" onclick="goPage(${pages})">\u00bb</button>`;
   pg.innerHTML = html;
 }
-function goPage(p) { const pages = Math.ceil(filtered.length / PAGE_SIZE); currentPage = Math.max(1, Math.min(p, pages)); renderTable(); }
+function goPage(p) { const pages = Math.ceil(filtered.length/PAGE_SIZE); currentPage = Math.max(1,Math.min(p,pages)); renderTable(); }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MATH UTILITIES
+// MATH
 // ═══════════════════════════════════════════════════════════════════════════════
 function polyFit(xs, ys, deg) {
-  const n = xs.length, d = deg;
-  if (n < d + 2) return null;
-  const A = Array.from({ length: d + 1 }, (_, i) =>
-    Array.from({ length: d + 1 }, (_, j) => xs.reduce((s, x) => s + Math.pow(x, i + j), 0))
-  );
-  const b = Array.from({ length: d + 1 }, (_, i) => xs.reduce((s, x, k) => s + ys[k] * Math.pow(x, i), 0));
-  const aug = A.map((row, i) => [...row, b[i]]);
-  for (let c = 0; c <= d; c++) {
-    let pr = c;
-    for (let r = c + 1; r <= d; r++) if (Math.abs(aug[r][c]) > Math.abs(aug[pr][c])) pr = r;
-    [aug[c], aug[pr]] = [aug[pr], aug[c]];
-    if (Math.abs(aug[c][c]) < 1e-10) return null;
-    for (let r = 0; r <= d; r++) {
-      if (r === c) continue;
-      const f = aug[r][c] / aug[c][c];
-      for (let j = c; j <= d + 1; j++) aug[r][j] -= f * aug[c][j];
-    }
+  const d = deg; if (xs.length < d+2) return null;
+  const A = Array.from({length:d+1},(_,i)=>Array.from({length:d+1},(_,j)=>xs.reduce((s,x)=>s+Math.pow(x,i+j),0)));
+  const b = Array.from({length:d+1},(_,i)=>xs.reduce((s,x,k)=>s+ys[k]*Math.pow(x,i),0));
+  const aug = A.map((row,i)=>[...row,b[i]]);
+  for (let c=0;c<=d;c++) {
+    let pr=c; for (let r=c+1;r<=d;r++) if (Math.abs(aug[r][c])>Math.abs(aug[pr][c])) pr=r;
+    [aug[c],aug[pr]]=[aug[pr],aug[c]];
+    if (Math.abs(aug[c][c])<1e-10) return null;
+    for (let r=0;r<=d;r++) { if (r===c) continue; const f=aug[r][c]/aug[c][c]; for (let j=c;j<=d+1;j++) aug[r][j]-=f*aug[c][j]; }
   }
-  return aug.map((row, i) => row[d + 1] / row[i]);
+  return aug.map((row,i)=>row[d+1]/row[i]);
 }
+function evalPoly(coeffs,x){return coeffs.reduce((s,c,i)=>s+c*Math.pow(x,i),0);}
+function smooth(vals,win){return vals.map((v,i)=>{const half=Math.floor(win/2),lo=Math.max(0,i-half),hi=Math.min(vals.length-1,i+half),sl=vals.slice(lo,hi+1);return sl.reduce((a,b)=>a+b,0)/sl.length;});}
 
-function evalPoly(coeffs, x) { return coeffs.reduce((s, c, i) => s + c * Math.pow(x, i), 0); }
-
-function smooth(vals, win) {
-  return vals.map((v, i) => {
-    const half = Math.floor(win / 2);
-    const lo = Math.max(0, i - half), hi = Math.min(vals.length - 1, i + half);
-    const slice = vals.slice(lo, hi + 1);
-    return slice.reduce((a, b) => a + b, 0) / slice.length;
-  });
+function fitOneSide(mu,sxs,sys){
+  const pts=sxs.map((x,i)=>{const u=(x-mu)*(x-mu);return u>0&&sys[i]>0.5?{u,ly:Math.log(sys[i])}:null;}).filter(Boolean);
+  if(pts.length<2)return null;
+  const n=pts.length,su=pts.reduce((s,p)=>s+p.u,0),sly=pts.reduce((s,p)=>s+p.ly,0),suu=pts.reduce((s,p)=>s+p.u*p.u,0),suly=pts.reduce((s,p)=>s+p.u*p.ly,0),det=n*suu-su*su;
+  if(Math.abs(det)<1e-10)return null;
+  const c1=(n*suly-su*sly)/det;
+  if(c1>=-1e-10)return null;
+  return Math.sqrt(-1/(2*c1));
 }
-
-function fitOneSide(mu, sxs, sys) {
-  const pts = sxs.map((x, i) => {
-    const u = (x - mu) * (x - mu);
-    return u > 0 && sys[i] > 0.5 ? { u, ly: Math.log(sys[i]) } : null;
-  }).filter(Boolean);
-  if (pts.length < 2) return null;
-  const n = pts.length;
-  const su = pts.reduce((s, p) => s + p.u, 0);
-  const sly = pts.reduce((s, p) => s + p.ly, 0);
-  const suu = pts.reduce((s, p) => s + p.u * p.u, 0);
-  const suly = pts.reduce((s, p) => s + p.u * p.ly, 0);
-  const det = n * suu - su * su;
-  if (Math.abs(det) < 1e-10) return null;
-  const c1 = (n * suly - su * sly) / det;
-  if (c1 >= -1e-10) return null;
-  return Math.sqrt(-1 / (2 * c1));
+function fitSplitGauss(xs,ys){
+  if(xs.length<8)return null;
+  let pi=0; for(let i=1;i<ys.length;i++) if(ys[i]>ys[pi]) pi=i;
+  const mu=xs[pi],A=ys[pi];
+  if(A<=0||pi<2||pi>xs.length-3)return null;
+  const sigmaL=fitOneSide(mu,xs.slice(0,pi+1),ys.slice(0,pi+1));
+  const sigmaR=fitOneSide(mu,xs.slice(pi),ys.slice(pi));
+  if(!sigmaL||!sigmaR)return null;
+  return{mu,A,sigmaL,sigmaR};
 }
+function evalSplitGauss(g,x){const sigma=x<g.mu?g.sigmaL:g.sigmaR;return Math.max(0,g.A*Math.exp(-0.5*Math.pow((x-g.mu)/sigma,2)));}
+window.evalSplitGauss=evalSplitGauss;
 
-function fitSplitGauss(xs, ys) {
-  if (xs.length < 8) return null;
-  let peakIdx = 0;
-  for (let i = 1; i < ys.length; i++) if (ys[i] > ys[peakIdx]) peakIdx = i;
-  const mu = xs[peakIdx], A = ys[peakIdx];
-  if (A <= 0 || peakIdx < 2 || peakIdx > xs.length - 3) return null;
-  const sigmaL = fitOneSide(mu, xs.slice(0, peakIdx + 1), ys.slice(0, peakIdx + 1));
-  const sigmaR = fitOneSide(mu, xs.slice(peakIdx), ys.slice(peakIdx));
-  if (!sigmaL || !sigmaR) return null;
-  return { mu, A, sigmaL, sigmaR };
-}
-
-function evalSplitGauss(g, x) {
-  const sigma = x < g.mu ? g.sigmaL : g.sigmaR;
-  return Math.max(0, g.A * Math.exp(-0.5 * Math.pow((x - g.mu) / sigma, 2)));
-}
-window.evalSplitGauss = evalSplitGauss;
-
-function findSmoothedFatigue(smoothed, thresholdFrac) {
-  let peakIdx = 0;
-  for (let i = 1; i < smoothed.length; i++) if (smoothed[i] > smoothed[peakIdx]) peakIdx = i;
-  const peakVal = smoothed[peakIdx];
-  const target = thresholdFrac * peakVal;
-  let lastCrossing = null;
-  for (let i = peakIdx + 1; i < smoothed.length; i++) {
-    if (smoothed[i - 1] >= target && smoothed[i] < target) {
-      const prev = smoothed[i - 1], curr = smoothed[i];
-      const frac = (prev - target) / (prev - curr);
-      lastCrossing = { relIdx: (i - 1) + frac, val: target, peakIdx, peakVal };
-    }
-  }
-  return lastCrossing;
+function findSmoothedFatigue(smoothed,thresholdFrac){
+  let pi=0; for(let i=1;i<smoothed.length;i++) if(smoothed[i]>smoothed[pi]) pi=i;
+  const target=thresholdFrac*smoothed[pi]; let lc=null;
+  for(let i=pi+1;i<smoothed.length;i++) if(smoothed[i-1]>=target&&smoothed[i]<target){const f=(smoothed[i-1]-target)/(smoothed[i-1]-smoothed[i]);lc={relIdx:(i-1)+f,val:target};}
+  return lc;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TREND / FATIGUE CHART
+// TREND CHART
 // ═══════════════════════════════════════════════════════════════════════════════
-function buildTrendChart(dates, pivot, grandTotal) {
+function buildTrendChart(dates, pivot) {
   const sym = CURRENCY.symbol;
-  const DEFAULT_FATIGUE_FRAC = 0.30;
-  const FATIGUE_SIGMA_MULT = Math.sqrt(-2 * Math.log(0.3));
-
-  const todayStr = new Date().toISOString().slice(0, 10);
-  let todayIdx = dates.indexOf(todayStr);
-  if (todayIdx < 0) todayIdx = dates.length - 1;
-
+  const DEFAULT_FF = 0.30, SIGMA_MULT = Math.sqrt(-2*Math.log(0.3));
+  const todayStr = new Date().toISOString().slice(0,10);
+  let todayIdx = dates.indexOf(todayStr); if(todayIdx<0) todayIdx=dates.length-1;
   const histLen = dates.length;
 
-  // Pass 1: fit Gaussians
-  const rawFits = COHORTS.map(c => {
-    const rawVals = (pivot[c.key] || []).map(v => v || 0);
-    let firstIdx = rawVals.findIndex(v => v > 0);
-    if (firstIdx < 0) return null;
-    let lastIdx = rawVals.length - 1;
-    while (lastIdx > firstIdx && rawVals[lastIdx] === 0) lastIdx--;
-    const span = lastIdx - firstIdx;
-    if (span < 8) return null;
-    const smoothed = smooth(rawVals.slice(firstIdx, lastIdx + 1), 14);
-    const gauss = fitSplitGauss(smoothed.map((_, i) => i), smoothed);
-    const fatigueAbsF = gauss ? firstIdx + gauss.mu + FATIGUE_SIGMA_MULT * gauss.sigmaR : null;
-    return { c, firstIdx, lastIdx, span, smoothed, gauss, fatigueAbsF };
+  const rawFits = COHORTS.map(c=>{
+    const rv=(pivot[c.key]||[]).map(v=>v||0);
+    let fi=rv.findIndex(v=>v>0); if(fi<0)return null;
+    let li=rv.length-1; while(li>fi&&rv[li]===0)li--;
+    const span=li-fi; if(span<8)return null;
+    const smoothed=smooth(rv.slice(fi,li+1),14);
+    const gauss=fitSplitGauss(smoothed.map((_,i)=>i),smoothed);
+    const faf=gauss?fi+gauss.mu+SIGMA_MULT*gauss.sigmaR:null;
+    return{c,firstIdx:fi,lastIdx:li,span,smoothed,gauss,fatigueAbsF:faf};
   }).filter(Boolean);
 
-  const maxFatigueAbsF = rawFits.reduce((m, f) => f.fatigueAbsF ? Math.max(m, f.fatigueAbsF) : m, histLen);
-  const projDays = Math.max(7, Math.ceil(maxFatigueAbsF - histLen) + 3);
-  const lastHistDate = new Date(dates[dates.length - 1]);
-  const futureDates = Array.from({ length: projDays }, (_, d) => {
-    const dd = new Date(lastHistDate); dd.setDate(dd.getDate() + d + 1);
-    return dd.toISOString().slice(0, 10);
-  });
-  const allDates = [...dates, ...futureDates];
+  const maxFAF=rawFits.reduce((m,f)=>f.fatigueAbsF?Math.max(m,f.fatigueAbsF):m,histLen);
+  const projDays=Math.max(7,Math.ceil(maxFAF-histLen)+3);
+  const lastHist=new Date(dates[dates.length-1]);
+  const futureDates=Array.from({length:projDays},(_,d)=>{const dd=new Date(lastHist);dd.setDate(dd.getDate()+d+1);return dd.toISOString().slice(0,10);});
+  const allDates=[...dates,...futureDates];
 
-  // Pass 2: build cohort data
-  const cohortData = rawFits.map(fp => {
-    const { c, firstIdx, lastIdx, span, smoothed, gauss } = fp;
-    const rawLine = allDates.map((_, i) => {
-      if (i < firstIdx || i > lastIdx) return null;
-      return +(smoothed[i - firstIdx] || 0).toFixed(2);
-    });
-    let trendSolid, trendDash, peakDateIdx, peakVal, peakIsProjected,
-        fatigueIdx, fatigueVal, fatigueIsProjected, stillGrowing, sigma, mu;
-
-    if (gauss) {
-      stillGrowing = false;
-      mu = gauss.mu; sigma = gauss.sigmaR;
-      const peakAbsF = firstIdx + mu;
-      peakDateIdx = Math.min(Math.round(peakAbsF), allDates.length - 1);
-      peakVal = gauss.A;
-      const n = smoothed.length;
-      const lastValFrac = gauss.A > 0 ? smoothed[n - 1] / gauss.A : 0;
-      peakIsProjected = Math.round(peakAbsF) > lastIdx || lastValFrac >= 0.85;
-
-      trendSolid = allDates.map((_, i) => {
-        if (i < firstIdx || i > lastIdx) return null;
-        return +(smoothed[i - firstIdx] || 0).toFixed(2);
-      });
-
-      if (peakIsProjected) {
-        stillGrowing = true;
-        fatigueIdx = null; fatigueVal = null; fatigueIsProjected = false;
-        const lastVal = smoothed[smoothed.length - 1];
-        const riseTo = gauss.A;
-        const riseLen = Math.max(1, peakDateIdx - lastIdx);
-        trendDash = allDates.map((_, i) => {
-          if (i < lastIdx || i > peakDateIdx) return null;
-          const t = (i - lastIdx) / riseLen;
-          return +Math.max(0, lastVal + (riseTo - lastVal) * (t * t)).toFixed(2);
-        });
+  const cohortData=rawFits.map(fp=>{
+    const{c,firstIdx:fi,lastIdx:li,span,smoothed,gauss}=fp;
+    const rawLine=allDates.map((_,i)=>i<fi||i>li?null:+(smoothed[i-fi]||0).toFixed(2));
+    let trendSolid,trendDash,peakDateIdx,peakVal,peakIsProjected,fatigueIdx,fatigueVal,fatigueIsProjected,stillGrowing,sigma,mu;
+    if(gauss){
+      stillGrowing=false; mu=gauss.mu; sigma=gauss.sigmaR;
+      const paf=fi+mu; peakDateIdx=Math.min(Math.round(paf),allDates.length-1); peakVal=gauss.A;
+      const lastValFrac=gauss.A>0?smoothed[smoothed.length-1]/gauss.A:0;
+      peakIsProjected=Math.round(paf)>li||lastValFrac>=0.85;
+      trendSolid=allDates.map((_,i)=>i<fi||i>li?null:+(smoothed[i-fi]||0).toFixed(2));
+      if(peakIsProjected){
+        stillGrowing=true; fatigueIdx=null; fatigueVal=null; fatigueIsProjected=false;
+        const lv=smoothed[smoothed.length-1],rl=Math.max(1,peakDateIdx-li);
+        trendDash=allDates.map((_,i)=>i<li||i>peakDateIdx?null:+Math.max(0,lv+(gauss.A-lv)*Math.pow((i-li)/rl,2)).toFixed(2));
       } else {
-        const sf = findSmoothedFatigue(smoothed, DEFAULT_FATIGUE_FRAC);
-        if (sf !== null) {
-          fatigueIdx = Math.min(firstIdx + Math.round(sf.relIdx), lastIdx);
-          fatigueVal = smoothed[Math.round(sf.relIdx)] || sf.val;
-          fatigueIsProjected = false;
-          trendDash = allDates.map(() => null);
+        const sf=findSmoothedFatigue(smoothed,DEFAULT_FF);
+        if(sf!==null){
+          fatigueIdx=Math.min(fi+Math.round(sf.relIdx),li); fatigueVal=smoothed[Math.round(sf.relIdx)]||sf.val;
+          fatigueIsProjected=false; trendDash=allDates.map(()=>null);
         } else {
-          const fatigueAbsF = firstIdx + mu + FATIGUE_SIGMA_MULT * gauss.sigmaR;
-          fatigueIdx = Math.min(Math.round(fatigueAbsF), allDates.length - 1);
-          fatigueVal = DEFAULT_FATIGUE_FRAC * gauss.A;
-          fatigueIsProjected = fatigueIdx >= histLen;
-          const lastVal = smoothed[smoothed.length - 1];
-          const projLen = Math.max(1, fatigueIdx - lastIdx);
-          const decayK = (lastVal > fatigueVal && lastVal > 0) ? Math.log(lastVal / Math.max(fatigueVal, 0.01)) / projLen : 0;
-          trendDash = allDates.map((_, i) => {
-            if (i < lastIdx || i > fatigueIdx) return null;
-            return +Math.max(0, lastVal * Math.exp(-decayK * (i - lastIdx))).toFixed(2);
-          });
+          const faf=fi+mu+SIGMA_MULT*gauss.sigmaR; fatigueIdx=Math.min(Math.round(faf),allDates.length-1);
+          fatigueVal=DEFAULT_FF*gauss.A; fatigueIsProjected=fatigueIdx>=histLen;
+          const lv=smoothed[smoothed.length-1],pl=Math.max(1,fatigueIdx-li);
+          const dk=(lv>fatigueVal&&lv>0)?Math.log(lv/Math.max(fatigueVal,0.01))/pl:0;
+          trendDash=allDates.map((_,i)=>i<li||i>fatigueIdx?null:+Math.max(0,lv*Math.exp(-dk*(i-li))).toFixed(2));
         }
       }
     } else {
-      stillGrowing = true; peakIsProjected = false; sigma = null; mu = null;
-      fatigueIdx = null; fatigueVal = null; fatigueIsProjected = false;
-      const deg = span >= 60 ? 9 : span >= 30 ? 7 : 5;
-      const coeffs = polyFit(smoothed.map((_, i) => i), smoothed, deg);
-      trendSolid = allDates.map((_, i) => {
-        if (i < firstIdx || i > lastIdx) return null;
-        return coeffs ? Math.max(0, +evalPoly(coeffs, i - firstIdx).toFixed(2)) : null;
-      });
-      trendDash = allDates.map(() => null);
-      peakDateIdx = lastIdx; peakVal = smoothed[smoothed.length - 1];
+      stillGrowing=true; peakIsProjected=false; sigma=null; mu=null;
+      fatigueIdx=null; fatigueVal=null; fatigueIsProjected=false;
+      const deg=span>=60?9:span>=30?7:5;
+      const coeffs=polyFit(smoothed.map((_,i)=>i),smoothed,deg);
+      trendSolid=allDates.map((_,i)=>i<fi||i>li?null:coeffs?Math.max(0,+evalPoly(coeffs,i-fi).toFixed(2)):null);
+      trendDash=allDates.map(()=>null); peakDateIdx=li; peakVal=smoothed[smoothed.length-1];
     }
-    return { c, firstIdx, lastIdx, trendSolid, trendDash, rawLine, gauss, smoothed,
-             peakDateIdx, peakVal, peakIsProjected, fatigueIdx, fatigueVal, fatigueIsProjected,
-             stillGrowing, sigma, mu, span };
+    return{c,firstIdx:fi,lastIdx:li,trendSolid,trendDash,rawLine,gauss,smoothed,peakDateIdx,peakVal,peakIsProjected,fatigueIdx,fatigueVal,fatigueIsProjected,stillGrowing,sigma,mu,span};
   });
 
-  // Datasets
-  const rawDs = cohortData.map(cd => ({
-    label: cd.c.label + ' (smoothed)', data: cd.rawLine,
-    borderColor: cd.c.color + '66', backgroundColor: 'transparent',
-    fill: false, borderWidth: 1.5, tension: 0.3, pointRadius: 0, spanGaps: false, hidden: true,
-  }));
-
-  const trendDs = cohortData.map(cd => ({
-    label: cd.c.label + ' Fit', data: cd.trendSolid,
-    borderColor: cd.c.color, backgroundColor: cd.c.color + '18',
-    fill: 'origin', borderWidth: 2.5, tension: 0.4, pointRadius: 0, spanGaps: false, hidden: false,
-  }));
-
-  const projDs = cohortData.map(cd => ({
-    label: cd.c.label + ' Proj', data: cd.trendDash,
-    borderColor: cd.c.color + 'aa', backgroundColor: cd.c.color + '08',
-    fill: false, borderWidth: 2, tension: 0.4, pointRadius: 0, spanGaps: false, hidden: false,
-    segment: { borderDash: () => [6, 4] },
-  }));
-
-  const peakDs = cohortData.map(cd => {
-    const pts = allDates.map((_, i) => i === cd.peakDateIdx ? +cd.peakVal.toFixed(2) : null);
-    const projPeak = !cd.stillGrowing && cd.peakIsProjected;
-    return {
-      label: cd.c.label + ' Peak', data: pts, type: 'scatter',
-      backgroundColor: cd.stillGrowing ? cd.c.color : projPeak ? 'transparent' : cd.c.color,
-      borderColor: cd.c.color, borderWidth: projPeak ? 3 : 2.5,
-      pointRadius: 10, pointHoverRadius: 12,
-      pointStyle: cd.stillGrowing ? 'triangle' : 'star', hidden: false,
-    };
+  const rawDs=cohortData.map(cd=>({label:cd.c.label+' (smoothed)',data:cd.rawLine,borderColor:cd.c.color+'66',backgroundColor:'transparent',fill:false,borderWidth:1.5,tension:0.3,pointRadius:0,spanGaps:false,hidden:true}));
+  const trendDs=cohortData.map(cd=>({label:cd.c.label+' Fit',data:cd.trendSolid,borderColor:cd.c.color,backgroundColor:cd.c.color+'18',fill:'origin',borderWidth:2.5,tension:0.4,pointRadius:0,spanGaps:false,hidden:false}));
+  const projDs=cohortData.map(cd=>({label:cd.c.label+' Proj',data:cd.trendDash,borderColor:cd.c.color+'aa',backgroundColor:cd.c.color+'08',fill:false,borderWidth:2,tension:0.4,pointRadius:0,spanGaps:false,hidden:false,segment:{borderDash:()=>[6,4]}}));
+  const peakDs=cohortData.map(cd=>{const pp=!cd.stillGrowing&&cd.peakIsProjected;return{label:cd.c.label+' Peak',data:allDates.map((_,i)=>i===cd.peakDateIdx?+cd.peakVal.toFixed(2):null),type:'scatter',backgroundColor:cd.stillGrowing?cd.c.color:pp?'transparent':cd.c.color,borderColor:cd.c.color,borderWidth:pp?3:2.5,pointRadius:10,pointHoverRadius:12,pointStyle:cd.stillGrowing?'triangle':'star',hidden:false};});
+  const fatigueDs=cohortData.map(cd=>{
+    if(cd.stillGrowing||cd.fatigueIdx===null)return{label:cd.c.label+' Fatigue',data:allDates.map(()=>null),type:'scatter',pointRadius:0,hidden:true};
+    return{label:cd.c.label+' Fatigue',data:allDates.map((_,i)=>i===cd.fatigueIdx?+cd.fatigueVal.toFixed(2):null),type:'scatter',backgroundColor:cd.fatigueIsProjected?'transparent':cd.c.color,borderColor:cd.c.color,borderWidth:2.5,pointRadius:9,pointHoverRadius:11,pointStyle:'rectRot',hidden:false};
   });
 
-  const fatigueDs = cohortData.map(cd => {
-    if (cd.stillGrowing || cd.fatigueIdx === null) {
-      return { label: cd.c.label + ' Fatigue', data: allDates.map(() => null), type: 'scatter', pointRadius: 0, hidden: true };
-    }
-    const pts = allDates.map((_, i) => i === cd.fatigueIdx ? +cd.fatigueVal.toFixed(2) : null);
-    return {
-      label: cd.c.label + ' Fatigue', data: pts, type: 'scatter',
-      backgroundColor: cd.fatigueIsProjected ? 'transparent' : cd.c.color,
-      borderColor: cd.c.color, borderWidth: 2.5,
-      pointRadius: 9, pointHoverRadius: 11, pointStyle: 'rectRot', hidden: false,
-    };
+  const allDs=[...rawDs,...trendDs,...projDs,...peakDs,...fatigueDs];
+  const rawStart=0,trendStart=rawDs.length,projStart=trendStart+trendDs.length,peakStart=projStart+projDs.length,fatigueStart=peakStart+peakDs.length;
+  window._trendState={cohortData,allDates,histLen,trendStart,projStart,peakStart,fatigueStart};
+
+  const sel=document.getElementById('calc_cohortSelect');
+  sel.innerHTML='<option value="">-- select a cohort to auto-fill --</option>';
+  cohortData.forEach(cd=>{const o=document.createElement('option');o.value=cd.c.key;o.textContent=cd.c.label;sel.appendChild(o);});
+
+  const todayPlugin={id:'todayLine2',afterDraw(chart){
+    if(chart.canvas.id!=='trendChart')return;
+    const xv=dates[Math.min(todayIdx,dates.length-1)],x=chart.scales.x.getPixelForValue(xv),{top,bottom}=chart.chartArea,ctx2=chart.ctx;
+    ctx2.save();ctx2.strokeStyle='#555b7e88';ctx2.lineWidth=1;ctx2.setLineDash([4,3]);
+    ctx2.beginPath();ctx2.moveTo(x,top);ctx2.lineTo(x,bottom);ctx2.stroke();ctx2.setLineDash([]);
+    ctx2.fillStyle='#555b7e';ctx2.font='10px system-ui';ctx2.fillText('Today',x+4,top+14);ctx2.restore();
+  }};
+
+  chartInstances.trend=new Chart(document.getElementById('trendChart'),{
+    type:'line', data:{labels:allDates,datasets:allDs},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#13152a',borderColor:'#353760',borderWidth:1,titleColor:'#c8cde8',bodyColor:'#9ba3cc',padding:12,
+        filter:item=>item.parsed.y!==null&&item.parsed.y>0&&!item.dataset.label.includes('Peak')&&!item.dataset.label.includes('Fatigue')&&!item.dataset.label.includes('smoothed'),
+        callbacks:{label:c=>` ${c.dataset.label}: ${sym}${c.parsed.y.toLocaleString('en-GB',{maximumFractionDigits:0})}`}}},
+      scales:{x:{grid:{color:'#181b2e'},ticks:{color:'#555b7e',maxRotation:0,font:{size:10},autoSkip:false,
+        callback(val,idx){const lbl=allDates[idx];if(!lbl)return'';const d=new Date(lbl),day=d.getDate();
+          if(day===1||day===15)return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});return '';}}},
+        y:{grid:{color:'#181b2e'},ticks:{color:'#555b7e',font:{size:10},callback:v=>`${sym}${v>=1000?(v/1000).toFixed(0)+'K':v}`},min:0}}},
+    plugins:[todayPlugin]
   });
+  window._trendChart=chartInstances.trend;
 
-  const allDs = [...rawDs, ...trendDs, ...projDs, ...peakDs, ...fatigueDs];
-  const rawStart = 0;
-  const trendStart = rawDs.length;
-  const projStart = trendStart + trendDs.length;
-  const peakStart = projStart + projDs.length;
-  const fatigueStart = peakStart + peakDs.length;
-  window._trendState = { cohortData, allDates, histLen, trendStart, projStart, peakStart, fatigueStart };
+  function renderTrendLegend(cdArr,adArr){
+    const tl=document.getElementById('trendLegend');tl.innerHTML='';
+    cdArr.forEach(cd=>{
+      const pdl=adArr[cd.peakDateIdx]||'',fdl=cd.fatigueIdx!==null?(adArr[cd.fatigueIdx]||''):'';
 
-  // Populate calculator cohort select
-  const sel = document.getElementById('calc_cohortSelect');
-  sel.innerHTML = '<option value="">-- select a cohort to auto-fill --</option>';
-  cohortData.forEach(cd => {
-    const opt = document.createElement('option');
-    opt.value = cd.c.key; opt.textContent = cd.c.label;
-    sel.appendChild(opt);
-  });
-
-  // Today line plugin
-  const todayPlugin = {
-    id: 'todayLine2',
-    afterDraw(chart) {
-      if (chart.canvas.id !== 'trendChart') return;
-      const xVal = dates[Math.min(todayIdx, dates.length - 1)];
-      const x = chart.scales.x.getPixelForValue(xVal);
-      const { top, bottom } = chart.chartArea;
-      const ctx2 = chart.ctx;
-      ctx2.save();
-      ctx2.strokeStyle = '#555b7e88'; ctx2.lineWidth = 1;
-      ctx2.setLineDash([4, 3]);
-      ctx2.beginPath(); ctx2.moveTo(x, top); ctx2.lineTo(x, bottom); ctx2.stroke();
-      ctx2.setLineDash([]);
-      ctx2.fillStyle = '#555b7e'; ctx2.font = '10px system-ui';
-      ctx2.fillText('Today', x + 4, top + 14);
-      ctx2.restore();
-    }
-  };
-
-  chartInstances.trend = new Chart(document.getElementById('trendChart'), {
-    type: 'line',
-    data: { labels: allDates, datasets: allDs },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
-          titleColor: '#c8cde8', bodyColor: '#9ba3cc', padding: 12,
-          filter: item => item.parsed.y !== null && item.parsed.y > 0 && !item.dataset.label.includes('Peak') && !item.dataset.label.includes('Fatigue') && !item.dataset.label.includes('smoothed'),
-          callbacks: { label: c => ` ${c.dataset.label}: ${sym}${c.parsed.y.toLocaleString('en-GB', { maximumFractionDigits: 0 })}` }
-        }
-      },
-      scales: {
-        x: {
-          grid: { color: '#181b2e' },
-          ticks: {
-            color: '#555b7e', maxRotation: 0, font: { size: 10 }, autoSkip: false,
-            callback(val, idx) {
-              const lbl = allDates[idx]; if (!lbl) return '';
-              const d = new Date(lbl);
-              const day = d.getDate();
-              if (day === 1 || day === 15) return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-              return '';
-            }
-          }
-        },
-        y: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` }, min: 0 }
-      }
-    },
-    plugins: [todayPlugin]
-  });
-  window._trendChart = chartInstances.trend;
-
-  // Legend
-  function renderTrendLegend(cdArr, adArr) {
-    const trendLeg = document.getElementById('trendLegend');
-    trendLeg.innerHTML = '';
-    cdArr.forEach(cd => {
-      const peakDateLabel = adArr[cd.peakDateIdx] || '';
-      const fatDateLabel = cd.fatigueIdx !== null ? (adArr[cd.fatigueIdx] || '') : '';
-      const el = document.createElement('div'); el.className = 'leg-item';
-      if (cd.stillGrowing) {
-        el.innerHTML = `<div class="leg-dot" style="background:${cd.c.color}"></div><span>${cd.c.label} Creatives</span><span class="leg-val" style="font-size:.7rem;color:#f59e0b">\u2197 Still rising \u2014 no peak found yet \u00b7 last ${sym}${(cd.peakVal/1000).toFixed(1)}K</span>`;
-      } else {
-        const peakColour = cd.peakIsProjected ? '#f59e0b' : '#10b981';
-        const peakPrefix = cd.peakIsProjected ? '\u2605 Est. peak' : '\u2605 Peak';
-        el.innerHTML = `<div class="leg-dot" style="background:${cd.c.color}"></div><span>${cd.c.label} Creatives</span><span class="leg-val" style="font-size:.7rem;color:${peakColour}">${peakPrefix} ${sym}${(cd.peakVal/1000).toFixed(1)}K on ${peakDateLabel}</span>`
-          + (fatDateLabel ? `<span style="font-size:.7rem;color:${cd.fatigueIsProjected ? '#f59e0b' : '#ef4444'};margin-left:8px">\u2B25 Fatigue ${cd.fatigueIsProjected ? '(est.) ' : ''}${fatDateLabel}</span>` : '');
-      }
-      trendLeg.appendChild(el);
+      const el=document.createElement('div');el.className='leg-item';
+      if(cd.stillGrowing){el.innerHTML=`<div class="leg-dot" style="background:${cd.c.color}"></div><span>${cd.c.label} Creatives</span><span class="leg-val" style="font-size:.7rem;color:#f59e0b">\u2197 Still rising \u2014 no peak found yet \u00b7 last ${sym}${(cd.peakVal/1000).toFixed(1)}K</span>`;}
+      else{const pc=cd.peakIsProjected?'#f59e0b':'#10b981',pp=cd.peakIsProjected?'\u2605 Est. peak':'\u2605 Peak';
+        el.innerHTML=`<div class="leg-dot" style="background:${cd.c.color}"></div><span>${cd.c.label} Creatives</span><span class="leg-val" style="font-size:.7rem;color:${pc}">${pp} ${sym}${(cd.peakVal/1000).toFixed(1)}K on ${pdl}</span>`
+          +(fdl?`<span style="font-size:.7rem;color:${cd.fatigueIsProjected?'#f59e0b':'#ef4444'};margin-left:8px">\u2B25 Fatigue ${cd.fatigueIsProjected?'(est.) ':''}${fdl}</span>`:'');}
+      tl.appendChild(el);
     });
   }
-  renderTrendLegend(cohortData, allDates);
-  window._renderTrendLegend = renderTrendLegend;
+  renderTrendLegend(cohortData,allDates);
+  window._renderTrendLegend=renderTrendLegend;
 
-  // Raw toggle
-  const rawToggle = document.getElementById('rawToggle');
-  const newRaw = rawToggle.cloneNode(true);
-  rawToggle.parentNode.replaceChild(newRaw, rawToggle);
-  let rawOn = false;
-  newRaw.addEventListener('click', function () {
-    rawOn = !rawOn;
-    this.classList.toggle('active', rawOn);
-    this.innerHTML = rawOn ? '<span class="tdot"></span> Hide Raw Data' : '<span class="tdot" style="background:#555b7e"></span> Show Raw Data';
-    for (let i = rawStart; i < rawStart + rawDs.length; i++) {
-      chartInstances.trend.getDatasetMeta(i).hidden = !rawOn;
-    }
-    chartInstances.trend.update();
-  });
+  const rawToggle=document.getElementById('rawToggle');
+  const newRaw=rawToggle.cloneNode(true);rawToggle.parentNode.replaceChild(newRaw,rawToggle);
+  let rawOn=false;
+  newRaw.addEventListener('click',function(){rawOn=!rawOn;this.classList.toggle('active',rawOn);
+    this.innerHTML=rawOn?'<span class="tdot"></span> Hide Raw Data':'<span class="tdot" style="background:#555b7e"></span> Show Raw Data';
+    for(let i=rawStart;i<rawStart+rawDs.length;i++)chartInstances.trend.getDatasetMeta(i).hidden=!rawOn;
+    chartInstances.trend.update();});
 
-  // Per-cohort toggle buttons
-  const trendBtnRow = document.getElementById('trendBtnRow');
-  trendBtnRow.innerHTML = '';
-  const trendActive = cohortData.map(() => true);
-  cohortData.forEach((cd, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'trend-btn active';
-    btn.style.borderColor = cd.c.color;
-    btn.innerHTML = `<span class="tdot" style="background:${cd.c.color}"></span> ${cd.c.label}`;
-    btn.addEventListener('click', function () {
-      trendActive[i] = !trendActive[i];
-      chartInstances.trend.getDatasetMeta(trendStart + i).hidden = !trendActive[i];
-      chartInstances.trend.getDatasetMeta(projStart + i).hidden = !trendActive[i];
-      chartInstances.trend.getDatasetMeta(peakStart + i).hidden = !trendActive[i];
-      chartInstances.trend.getDatasetMeta(fatigueStart + i).hidden = !trendActive[i];
-      if (trendActive[i]) {
-        btn.classList.add('active'); btn.style.borderColor = cd.c.color;
-        btn.querySelector('.tdot').style.background = cd.c.color;
-      } else {
-        btn.classList.remove('active'); btn.style.borderColor = cd.c.color + '55';
-        btn.querySelector('.tdot').style.background = cd.c.color + '44';
-      }
+  const trendBtnRow=document.getElementById('trendBtnRow');trendBtnRow.innerHTML='';
+  const trendActive=cohortData.map(()=>true);
+  cohortData.forEach((cd,i)=>{
+    const btn=document.createElement('button');btn.className='trend-btn active';btn.style.borderColor=cd.c.color;
+    btn.innerHTML=`<span class="tdot" style="background:${cd.c.color}"></span> ${cd.c.label}`;
+    btn.addEventListener('click',function(){
+      trendActive[i]=!trendActive[i];
+      chartInstances.trend.getDatasetMeta(trendStart+i).hidden=!trendActive[i];
+      chartInstances.trend.getDatasetMeta(projStart+i).hidden=!trendActive[i];
+      chartInstances.trend.getDatasetMeta(peakStart+i).hidden=!trendActive[i];
+      chartInstances.trend.getDatasetMeta(fatigueStart+i).hidden=!trendActive[i];
+      if(trendActive[i]){btn.classList.add('active');btn.style.borderColor=cd.c.color;btn.querySelector('.tdot').style.background=cd.c.color;}
+      else{btn.classList.remove('active');btn.style.borderColor=cd.c.color+'55';btn.querySelector('.tdot').style.background=cd.c.color+'44';}
       chartInstances.trend.update();
     });
     trendBtnRow.appendChild(btn);
@@ -1258,128 +930,125 @@ function buildTrendChart(dates, pivot, grandTotal) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FATIGUE THRESHOLD SLIDER
+// FATIGUE SLIDER
 // ═══════════════════════════════════════════════════════════════════════════════
-function updateFatigueThreshold(pct) {
-  document.getElementById('fatigueThreshVal').textContent = pct + '%';
-  const threshold = pct / 100;
-  if (threshold <= 0 || threshold >= 1) return;
-  const mult = Math.sqrt(-2 * Math.log(threshold));
-  const state = window._trendState;
-  const chart = window._trendChart;
-  if (!state || !chart) return;
-  const { cohortData, allDates, histLen, projStart, fatigueStart } = state;
-
-  cohortData.forEach((cd, i) => {
-    if (cd.stillGrowing || !cd.gauss) return;
-    const { gauss, firstIdx, lastIdx, smoothed } = cd;
-    let newFatigueIdx, newFatigueVal, isProjected;
-
-    if (smoothed && smoothed.length > 0) {
-      let peakIdx = 0;
-      for (let k = 1; k < smoothed.length; k++) if (smoothed[k] > smoothed[peakIdx]) peakIdx = k;
-      const peakVal = smoothed[peakIdx];
-      const target = threshold * peakVal;
-      let found = null;
-      for (let k = peakIdx + 1; k < smoothed.length; k++) {
-        if (smoothed[k - 1] >= target && smoothed[k] < target) {
-          const prev = smoothed[k - 1], curr = smoothed[k];
-          const frac = (prev - target) / (prev - curr);
-          found = { relIdx: (k - 1) + frac, val: target };
-        }
-      }
-      if (found !== null) {
-        newFatigueIdx = Math.min(firstIdx + Math.round(found.relIdx), lastIdx);
-        newFatigueVal = smoothed[Math.round(found.relIdx)] || found.val;
-        isProjected = false;
-        const projDsItem = chart.data.datasets[projStart + i];
-        if (projDsItem) projDsItem.data = allDates.map(() => null);
+function updateFatigueThreshold(pct){
+  document.getElementById('fatigueThreshVal').textContent=pct+'%';
+  const threshold=pct/100; if(threshold<=0||threshold>=1)return;
+  const mult=Math.sqrt(-2*Math.log(threshold));
+  const state=window._trendState,chart=window._trendChart;
+  if(!state||!chart)return;
+  const{cohortData,allDates,histLen,projStart,fatigueStart}=state;
+  cohortData.forEach((cd,i)=>{
+    if(cd.stillGrowing||!cd.gauss)return;
+    const{gauss,firstIdx:fi,lastIdx:li,smoothed}=cd;
+    let ni,nv,ip;
+    if(smoothed&&smoothed.length>0){
+      let pi=0;for(let k=1;k<smoothed.length;k++)if(smoothed[k]>smoothed[pi])pi=k;
+      const target=threshold*smoothed[pi];let found=null;
+      for(let k=pi+1;k<smoothed.length;k++)if(smoothed[k-1]>=target&&smoothed[k]<target){const f=(smoothed[k-1]-target)/(smoothed[k-1]-smoothed[k]);found={relIdx:(k-1)+f,val:target};}
+      if(found!==null){
+        ni=Math.min(fi+Math.round(found.relIdx),li);nv=smoothed[Math.round(found.relIdx)]||found.val;ip=false;
+        const pd=chart.data.datasets[projStart+i];if(pd)pd.data=allDates.map(()=>null);
       } else {
-        const fatigueAbsF = firstIdx + gauss.mu + mult * gauss.sigmaR;
-        newFatigueIdx = Math.min(Math.round(fatigueAbsF), allDates.length - 1);
-        newFatigueVal = threshold * gauss.A;
-        isProjected = newFatigueIdx >= histLen;
-        const projDsItem = chart.data.datasets[projStart + i];
-        if (projDsItem) {
-          const lastVal = smoothed[smoothed.length - 1];
-          const projLen = Math.max(1, newFatigueIdx - lastIdx);
-          const decayK = (lastVal > newFatigueVal && lastVal > 0) ? Math.log(lastVal / Math.max(newFatigueVal, 0.01)) / projLen : 0;
-          projDsItem.data = allDates.map((_, j) => {
-            if (j < lastIdx || j > newFatigueIdx) return null;
-            return +Math.max(0, lastVal * Math.exp(-decayK * (j - lastIdx))).toFixed(2);
-          });
-        }
+        const faf=fi+gauss.mu+mult*gauss.sigmaR;ni=Math.min(Math.round(faf),allDates.length-1);nv=threshold*gauss.A;ip=ni>=histLen;
+        const pd=chart.data.datasets[projStart+i];
+        if(pd){const lv=smoothed[smoothed.length-1],pl=Math.max(1,ni-li),dk=(lv>nv&&lv>0)?Math.log(lv/Math.max(nv,0.01))/pl:0;
+          pd.data=allDates.map((_,j)=>j<li||j>ni?null:+Math.max(0,lv*Math.exp(-dk*(j-li))).toFixed(2));}
       }
-    } else {
-      const fatigueAbsF = firstIdx + gauss.mu + mult * gauss.sigmaR;
-      newFatigueIdx = Math.min(Math.round(fatigueAbsF), allDates.length - 1);
-      newFatigueVal = window.evalSplitGauss(gauss, gauss.mu + mult * gauss.sigmaR);
-      isProjected = newFatigueIdx >= histLen;
-    }
-
-    cd.fatigueIdx = newFatigueIdx; cd.fatigueVal = newFatigueVal; cd.fatigueIsProjected = isProjected;
-    const fatDs = chart.data.datasets[fatigueStart + i];
-    if (fatDs) {
-      fatDs.data = allDates.map((_, j) => j === newFatigueIdx ? +newFatigueVal.toFixed(2) : null);
-      fatDs.backgroundColor = isProjected ? 'transparent' : cd.c.color;
-    }
+    } else {const faf=fi+gauss.mu+mult*gauss.sigmaR;ni=Math.min(Math.round(faf),allDates.length-1);nv=window.evalSplitGauss(gauss,gauss.mu+mult*gauss.sigmaR);ip=ni>=histLen;}
+    cd.fatigueIdx=ni;cd.fatigueVal=nv;cd.fatigueIsProjected=ip;
+    const fd=chart.data.datasets[fatigueStart+i];
+    if(fd){fd.data=allDates.map((_,j)=>j===ni?+nv.toFixed(2):null);fd.backgroundColor=ip?'transparent':cd.c.color;}
   });
-
   chart.update('none');
-  window._renderTrendLegend(cohortData, allDates);
+  window._renderTrendLegend(cohortData,allDates);
   calcSyncFromGraph();
+  buildAISummary();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CALCULATOR
 // ═══════════════════════════════════════════════════════════════════════════════
-function calcSyncFromGraph() {
-  const sel = document.getElementById('calc_cohortSelect');
-  if (!sel || !sel.value) return;
-  const state = window._trendState;
-  if (!state) return;
-  const { cohortData, allDates } = state;
-  const cd = cohortData.find(c => c.c.key === sel.value);
-  if (!cd) return;
-  const fatigueDate = allDates[cd.fatigueIdx] || '';
-  const daysToFatigue = Math.max(1, cd.fatigueIdx - cd.firstIdx);
-  const cohortSpend = RAW.filter(r => r.First_spend_month === cd.c.key && r.Date <= fatigueDate).reduce((s, r) => s + r.Cost_GBP, 0);
-  const cohortStart = cd.c.key;
-  const totalSpend = RAW.filter(r => r.Date >= cohortStart && r.Date <= fatigueDate).reduce((s, r) => s + r.Cost_GBP, 0);
-  const adsLaunched = new Set(RAW.filter(r => r.First_spend_month === cd.c.key).map(r => r.Ad_name)).size;
-  document.getElementById('calc_adsLaunched').value = adsLaunched;
-  document.getElementById('calc_cohortSpend').value = Math.round(cohortSpend);
-  document.getElementById('calc_totalSpend').value = Math.round(totalSpend);
-  document.getElementById('calc_daysToFatigue').value = daysToFatigue;
-  const note = document.getElementById('calc_syncNote');
-  if (note) note.style.display = 'inline';
+function calcSyncFromGraph(){
+  const sel=document.getElementById('calc_cohortSelect');
+  if(!sel||!sel.value)return;
+  const state=window._trendState;if(!state)return;
+  const{cohortData,allDates}=state;
+  const cd=cohortData.find(c=>c.c.key===sel.value);if(!cd)return;
+  const fd=allDates[cd.fatigueIdx]||'';
+  const dtf=Math.max(1,cd.fatigueIdx-cd.firstIdx);
+  const cs=RAW.filter(r=>r.First_spend_month===cd.c.key&&r.Date<=fd).reduce((s,r)=>s+r.Cost_GBP,0);
+  const cohortStartDate=allDates[cd.firstIdx]||'';
+  const ts=RAW.filter(r=>r.Date>=cohortStartDate&&r.Date<=fd).reduce((s,r)=>s+r.Cost_GBP,0);
+  const al=new Set(RAW.filter(r=>r.First_spend_month===cd.c.key).map(r=>r.Ad_name)).size;
+  document.getElementById('calc_adsLaunched').value=al;
+  document.getElementById('calc_cohortSpend').value=Math.round(cs);
+  document.getElementById('calc_totalSpend').value=Math.round(ts);
+  document.getElementById('calc_daysToFatigue').value=dtf;
+  const note=document.getElementById('calc_syncNote');if(note)note.style.display='inline';
   calcAds();
 }
 
-function calcAds() {
-  const sym = CURRENCY.symbol;
-  const fmtC = n => sym + Math.round(n).toLocaleString('en-GB');
-  const N = parseFloat(document.getElementById('calc_adsLaunched').value) || 0;
-  const S6 = parseFloat(document.getElementById('calc_cohortSpend').value) || 0;
-  const S7 = parseFloat(document.getElementById('calc_totalSpend').value) || 0;
-  const D = parseFloat(document.getElementById('calc_daysToFatigue').value) || 1;
-  const T = parseFloat(document.getElementById('calc_monthlyTarget').value) || 0;
-  const scale = parseFloat(document.getElementById('calc_scaleFactor').value) || 1;
+function calcAds(){
+  const sym=CURRENCY.symbol,fmtC=n=>sym+Math.round(n).toLocaleString('en-GB');
+  const N=parseFloat(document.getElementById('calc_adsLaunched').value)||0;
+  const S6=parseFloat(document.getElementById('calc_cohortSpend').value)||0;
+  const S7=parseFloat(document.getElementById('calc_totalSpend').value)||0;
+  const D=parseFloat(document.getElementById('calc_daysToFatigue').value)||1;
+  const T=parseFloat(document.getElementById('calc_monthlyTarget').value)||0;
+  const scale=parseFloat(document.getElementById('calc_scaleFactor').value)||1;
+  document.getElementById('calc_scaleDisplay').textContent=scale.toFixed(1)+'x';
+  const spa=N>0?S6/N:0,sr=S7>0?S6/S7:0,mm=S7*(30/D),ba=spa>0?((T*sr)/spa)*(30/D):0,sa=ba*scale;
+  document.getElementById('calc_results').innerHTML=`
+    <div class="rcard hero"><div class="rlabel">Ads needed per month</div><div class="rval hero">${Math.ceil(sa)}</div><div class="runit">after ${scale.toFixed(1)}x scaling</div></div>
+    <div class="rcard"><div class="rlabel">Base (unscaled)</div><div class="rval">${Math.ceil(ba)}</div><div class="runit">before scaling factor</div></div>
+    <div class="rcard"><div class="rlabel">Average spend per ad</div><div class="rval">${fmtC(spa)}</div><div class="runit">per creative in cohort</div></div>
+    <div class="rcard"><div class="rlabel">New vs historic split</div><div class="rval">${(sr*100).toFixed(1)}%</div><div class="runit">of spend on new cohort</div></div>
+    <div class="rcard"><div class="rlabel">Model monthly spend</div><div class="rval">${fmtC(mm)}</div><div class="runit">at current fatigue rate</div></div>`;
+}
 
-  document.getElementById('calc_scaleDisplay').textContent = scale.toFixed(1) + 'x';
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI SUMMARY
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildAISummary(){
+  const sym=CURRENCY.symbol,el=document.getElementById('aiSummaryBody');
+  if(!RAW.length||!window._trendState){el.innerHTML='<p style="color:#555b7e">No data loaded yet.</p>';return;}
+  const{cohortData,allDates}=window._trendState;
+  const grandTotal=RAW.reduce((s,r)=>s+r.Cost_GBP,0);
+  const datesSorted=[...new Set(RAW.map(r=>r.Date))].sort();
+  const dayCount=datesSorted.length;
+  const uniqueAds=new Set(RAW.map(r=>r.Ad_name)).size;
 
-  const spendPerAd = N > 0 ? S6 / N : 0;
-  const splitRatio = S7 > 0 ? S6 / S7 : 0;
-  const modelMonthly = S7 * (30 / D);
-  const baseAds = spendPerAd > 0 ? ((T * splitRatio) / spendPerAd) * (30 / D) : 0;
-  const scaledAds = baseAds * scale;
+  const cohortStats=cohortData.map(cd=>{
+    const total=RAW.filter(r=>r.First_spend_month===cd.c.key).reduce((s,r)=>s+r.Cost_GBP,0);
+    const pct=grandTotal>0?(total/grandTotal)*100:0;
+    const fatigued=!cd.stillGrowing&&cd.fatigueIdx!==null;
+    const daysToFatigue=fatigued?cd.fatigueIdx-cd.firstIdx:null;
+    return{...cd,total,pct,fatigued,daysToFatigue,fatigueDate:fatigued?allDates[cd.fatigueIdx]:null};
+  });
 
-  document.getElementById('calc_results').innerHTML = `
-    <div class="rcard hero"><div class="rlabel">Ads needed per month</div><div class="rval hero">${Math.ceil(scaledAds)}</div><div class="runit">after ${scale.toFixed(1)}x scaling</div></div>
-    <div class="rcard"><div class="rlabel">Base (unscaled)</div><div class="rval">${Math.ceil(baseAds)}</div><div class="runit">before scaling factor</div></div>
-    <div class="rcard"><div class="rlabel">Average spend per ad</div><div class="rval">${fmtC(spendPerAd)}</div><div class="runit">per creative in cohort</div></div>
-    <div class="rcard"><div class="rlabel">New vs historic split</div><div class="rval">${(splitRatio * 100).toFixed(1)}%</div><div class="runit">of spend on new cohort</div></div>
-    <div class="rcard"><div class="rlabel">Model monthly spend</div><div class="rval">${fmtC(modelMonthly)}</div><div class="runit">at current fatigue rate</div></div>`;
+  const sorted=[...cohortStats].sort((a,b)=>b.total-a.total);
+  const best=sorted[0],worst=sorted[sorted.length-1];
+  const fatiguedC=cohortStats.filter(c=>c.fatigued&&c.daysToFatigue!==null);
+  const avgDTF=fatiguedC.length?Math.round(fatiguedC.reduce((s,c)=>s+c.daysToFatigue,0)/fatiguedC.length):null;
+  const risingC=cohortStats.filter(c=>c.stillGrowing);
+  const midDate=datesSorted[Math.floor(dayCount/2)];
+  const fh=RAW.filter(r=>r.Date<midDate).reduce((s,r)=>s+r.Cost_GBP,0);
+  const sh=RAW.filter(r=>r.Date>=midDate).reduce((s,r)=>s+r.Cost_GBP,0);
+  const spendTrend=fh>0?((sh-fh)/fh)*100:0;
+  const adTotals={};RAW.forEach(r=>{adTotals[r.Ad_name]=(adTotals[r.Ad_name]||0)+r.Cost_GBP;});
+  const topAd=Object.entries(adTotals).sort((a,b)=>b[1]-a[1])[0];
+
+  const insights=[
+    {label:'Overview',html:`Analysed <strong>${RAW.length.toLocaleString()} records</strong> across <strong>${COHORTS.length} cohorts</strong> and <strong>${uniqueAds} creatives</strong> over <strong>${dayCount} days</strong>. Total spend: <strong>${sym}${(grandTotal/1000).toFixed(1)}K</strong>. Spend in the second half of the period was <span class="${spendTrend>=0?'ai-highlight':'ai-danger'}">${spendTrend>=0?'+':''}${spendTrend.toFixed(0)}%</span> vs the first half, suggesting the account is <strong>${spendTrend>=10?'scaling up':spendTrend<=-10?'pulling back':'holding steady'}</strong>.`},
+    {label:'Cohort Performance',html:`<strong>${best.c.label}</strong> was the highest-spending cohort at <span class="ai-highlight">${sym}${(best.total/1000).toFixed(1)}K</span> (${best.pct.toFixed(0)}% of total spend). ${worst.c.label!==best.c.label?`<strong>${worst.c.label}</strong> was the smallest at ${sym}${(worst.total/1000).toFixed(1)}K (${worst.pct.toFixed(0)}%).`:''} ${risingC.length>0?`<span class="ai-warn">${risingC.map(c=>c.c.label).join(', ')}</span> ${risingC.length===1?'is':'are'} still rising &mdash; no peak detected yet.`:'All cohorts have passed their peak spend.'}`},
+    ...(fatiguedC.length>0?[{label:'Fatigue Analysis',html:`${fatiguedC.map(c=>`<strong>${c.c.label}</strong>: fatigued after <strong>${c.daysToFatigue} days</strong>${c.fatigueIsProjected?' <span class="ai-warn">(projected)</span>':''}`).join(' &middot; ')}.<br>Average time to fatigue: <span class="${avgDTF<30?'ai-danger':avgDTF<60?'ai-warn':'ai-highlight'}">${avgDTF} days</span>. ${avgDTF<30?'Creatives are burning out quickly &mdash; consider increasing upload frequency.':avgDTF<60?'Moderate fatigue rate &mdash; a steady monthly refresh cadence should keep performance healthy.':'Creatives have good longevity &mdash; you have more flexibility in your upload schedule.'}`}]:[]),
+    ...(topAd?[{label:'Top Creative',html:`<strong>${topAd[0]}</strong> was the highest-spending individual creative at <span class="ai-highlight">${sym}${(topAd[1]/1000).toFixed(1)}K</span> (${((topAd[1]/grandTotal)*100).toFixed(1)}% of total spend).`}]:[]),
+    ...(avgDTF!==null?[{label:'Recommendation',html:`Based on an average fatigue window of <strong>${avgDTF} days</strong> and ~<strong>${Math.round(uniqueAds/COHORTS.length)} creatives per cohort</strong>, aim to launch a new cohort every <span class="ai-highlight">${avgDTF<30?'2&ndash;3 weeks':avgDTF<60?'4&ndash;6 weeks':'6&ndash;10 weeks'}</span>. ${risingC.length>0?`Monitor <strong>${risingC.map(c=>c.c.label).join(' and ')}</strong> closely &mdash; ${risingC.length===1?'it is':'they are'} approaching peak and will need replacement creatives soon.`:''}`}]:[])
+  ];
+
+  el.innerHTML=insights.map(ins=>`<div class="ai-insight"><div class="ai-insight-label">${ins.label}</div><p>${ins.html}</p></div>`).join('');
 }
 </script>
 </body>
