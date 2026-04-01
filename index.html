@@ -129,31 +129,60 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
   <div class="upload-card">
     <h2>Creative Churn Analysis</h2>
     <p>Upload your ad performance data to generate a full churn analysis dashboard</p>
+
+    <!-- Step 1: Spend data -->
+    <div style="text-align:left;margin-bottom:6px">
+      <span style="font-size:.68rem;text-transform:uppercase;letter-spacing:.8px;color:#6366f1;font-weight:700">Step 1 &mdash; Spend Data</span>
+      <span style="font-size:.68rem;color:#555b7e;margin-left:6px">(required)</span>
+    </div>
     <div class="drop-zone" id="dropZone">
-      <div class="drop-zone-text">Drop CSV or JSON file here</div>
-      <div class="drop-zone-sub">or click to browse</div>
+      <div class="drop-zone-text" id="dropZoneText">Drop spend CSV / JSON here</div>
+      <div class="drop-zone-sub">or click to browse &middot; Date, Ad name, Cost, Cohort</div>
     </div>
     <input type="file" id="fileInput" accept=".csv,.json,.tsv" style="display:none"/>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <button class="upload-btn secondary" onclick="loadDemo()">Load Demo Data</button>
-    </div>
-    <div class="error-msg" id="uploadError"></div>
+
+    <!-- Spend column mapping (shown after upload) -->
     <div class="field-map" id="fieldMap" style="display:none">
-      <h3>Map your columns</h3>
+      <h3>Map spend columns</h3>
       <div class="field-row"><label>Date</label><select id="map_date"></select></div>
       <div class="field-row"><label>Ad / Creative Name</label><select id="map_ad_name"></select></div>
       <div class="field-row"><label>Cost / Spend</label><select id="map_cost"></select></div>
       <div class="field-row"><label>Impressions</label><select id="map_impressions"></select></div>
       <div class="field-row"><label>Clicks</label><select id="map_clicks"></select></div>
       <div class="field-row"><label>Cohort (first spend month)</label><select id="map_cohort"></select></div>
-      <div style="margin-top:16px;text-align:center">
-        <button class="upload-btn" onclick="applyMapping()">Build Dashboard</button>
-      </div>
     </div>
-    <div class="format-info">
-      <strong style="color:#c8cde8">Expected columns:</strong><br/>
-      <code>Date</code> (YYYY-MM-DD) &middot; <code>Ad_name</code> &middot; <code>Cost_GBP</code> (spend amount) &middot; <code>Impressions</code> &middot; <code>Link_clicks</code> &middot; <code>First_spend_month</code> (YYYY-MM cohort key)<br/><br/>
-      Column names are auto-mapped. If your columns differ, you can remap them after upload. The cohort column is optional &mdash; it will be auto-derived from each ad's earliest date if missing.
+
+    <!-- Step 2: CPA data -->
+    <div style="text-align:left;margin-top:20px;margin-bottom:6px">
+      <span style="font-size:.68rem;text-transform:uppercase;letter-spacing:.8px;color:#f59e0b;font-weight:700">Step 2 &mdash; CPA Data</span>
+      <span style="font-size:.68rem;color:#555b7e;margin-left:6px">(optional)</span>
+    </div>
+    <div style="border:2px dashed #2e3254;border-radius:14px;padding:18px 24px;cursor:pointer;transition:all .2s;margin-bottom:8px" id="cpaDropZone">
+      <div style="font-size:.85rem;color:#9ba3cc" id="cpaDropText">Drop CPA CSV here</div>
+      <div style="font-size:.72rem;color:#555b7e;margin-top:4px">or click to browse &middot; Date, Conversions, Cost</div>
+    </div>
+    <input type="file" id="cpaFileInput" accept=".csv" style="display:none"/>
+
+    <!-- CPA column mapping (shown after upload) -->
+    <div class="field-map" id="cpaFieldMap" style="display:none;margin-top:4px">
+      <h3 style="font-size:.82rem">Map CPA columns</h3>
+      <div class="field-row"><label>Date</label><select id="cpa_map_date"></select></div>
+      <div class="field-row"><label>Conversions</label><select id="cpa_map_conv"></select></div>
+      <div class="field-row"><label>Cost / Spend</label><select id="cpa_map_cost"></select></div>
+    </div>
+
+    <!-- Build button + demo -->
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+      <button class="upload-btn" onclick="applyMapping()" id="buildBtn" style="display:none">Build Dashboard</button>
+      <button class="upload-btn secondary" onclick="loadDemo()">Load Demo Data</button>
+    </div>
+    <div class="error-msg" id="uploadError"></div>
+
+    <div class="format-info" style="margin-top:16px">
+      <strong style="color:#c8cde8">Spend CSV columns:</strong>
+      <code>Date</code> &middot; <code>Ad name</code> &middot; <code>Cost</code> &middot; <code>First spend month</code><br/>
+      <strong style="color:#c8cde8;margin-top:6px;display:block">CPA CSV columns:</strong>
+      <code>Date</code> &middot; <code>Conversions</code> &middot; <code>Cost</code> &mdash; CPA is auto-calculated
     </div>
   </div>
 </div>
@@ -206,7 +235,6 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
         <div class="card-title">Creative Cohort Fatigue Analysis &mdash; Distribution Curves</div>
         <div class="card-sub">Smoothed spend curve per cohort &middot; &#9733; = peak &middot; &#11045; = fatigue point &middot; drag slider to adjust fatigue threshold</div>
       </div>
-      <button class="trend-btn" id="rawToggle"><span class="tdot" style="background:#555b7e"></span> Show Raw Data</button>
     </div>
     <div class="fatigue-slider-row">
       <label>&#9888; Fatigue threshold</label>
@@ -241,10 +269,8 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
       <div class="calc-section-title"><span class="calc-step">1</span> Cohort inputs</div>
       <div class="calc-section-sub">Enter figures from your reference cohort &mdash; or auto-fill from the graph above</div>
       <div class="calc-grid">
-        <div class="calc-field"><label>Ads launched in cohort</label><input type="number" id="calc_adsLaunched" value="0" min="1" oninput="calcAds()"></div>
-        <div class="calc-field"><label>Cohort spend before fatigue</label><input type="number" id="calc_cohortSpend" value="0" min="0" oninput="calcAds()"></div>
-        <div class="calc-field"><label>Total account spend since cohort launch</label><input type="number" id="calc_totalSpend" value="0" min="0" oninput="calcAds()"></div>
-        <div class="calc-field"><label>Days to fatigue (from launch)</label><input type="number" id="calc_daysToFatigue" value="0" min="1" oninput="calcAds()"></div>
+        <div class="calc-field"><label>Total account spend in period</label><input type="number" id="calc_totalSpend" value="0" min="0" oninput="calcAds()"></div>
+        <div class="calc-field"><label>Days to fatigue</label><input type="number" id="calc_daysToFatigue" value="1" min="1" oninput="calcAds()"></div>
       </div>
     </div>
     <div class="calc-section">
@@ -268,9 +294,9 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
       <div class="calc-section-title"><span class="calc-step">4</span> Results</div>
       <div class="calc-results" id="calc_results"></div>
       <div class="calc-assumptions">
-        <p><span class="calc-dot"></span>Platform will balance spend between new and existing ads based on performance</p>
-        <p><span class="calc-dot"></span>Old ads will fatigue over time and start to perform worse than new ads</p>
-        <p><span class="calc-dot"></span>The fatigue curve from your model data can be applied to elevated spend levels</p>
+        <p><span class="calc-dot"></span>Formula: ((Target &divide; Model Monthly) &times; Days to Fatigue) &times; Scale</p>
+        <p><span class="calc-dot"></span>Model Monthly = Total Account Spend &times; (30 &divide; Days to Fatigue)</p>
+        <p><span class="calc-dot"></span>Total account spend and days to fatigue are auto-filled from the selected cohort</p>
       </div>
     </div>
   </div>
@@ -326,6 +352,8 @@ let COHORT_MAP = {};
 let CURRENCY = { symbol: '\u00a3', code: 'GBP' };
 let chartInstances = {};
 let parsedRawData = null;
+let CPA_DATA = {};          // { 'YYYY-MM-DD': cpaValue }
+let parsedCPAData = null;
 
 const PALETTE = [
   { color: '#f97316', light: '#fed7aa' },
@@ -370,8 +398,11 @@ function handleFile(file) {
         const lines = text.split(/\r?\n/);
         let headerIdx = 0;
         for (let i = 0; i < Math.min(lines.length, 20); i++) {
-          const trimmed = lines[i].replace(/,/g, '').trim();
-          if (trimmed.length === 0) continue;
+          // Only treat this line as the header if its FIRST field is non-empty.
+          // This skips rows that have data in right-side columns only
+          // (e.g. embedded calculator tables) while the left columns are blank.
+          const firstField = lines[i].split(',')[0].trim();
+          if (firstField.length === 0) continue;
           headerIdx = i; break;
         }
         if (headerIdx > 0) text = lines.slice(headerIdx).join('\n');
@@ -382,6 +413,8 @@ function handleFile(file) {
       rows = rows.filter(r => Object.values(r).some(v => v !== null && v !== '' && v !== undefined));
       if (!rows.length) throw new Error('No data rows found');
       parsedRawData = rows;
+      document.getElementById('dropZoneText').textContent = '\u2713 ' + file.name + ' loaded';
+      document.getElementById('dropZone').style.borderColor = '#10b981';
       showFieldMapping(Object.keys(rows[0]));
     } catch(err) { showError(err.message); }
   };
@@ -414,6 +447,7 @@ function showFieldMapping(columns) {
     if (!matched) { const pHints = partialHints[id] || []; for (const ph of pHints) { const idx = colsLower.findIndex(c => c.includes(ph)); if (idx >= 0) { sel.value = columns[idx]; break; } } }
   });
   document.getElementById('fieldMap').style.display = 'block';
+  document.getElementById('buildBtn').style.display = 'inline-block';
 }
 
 function applyMapping() {
@@ -444,8 +478,122 @@ function applyMapping() {
   initDashboard(rows);
 }
 
+// ── CPA file upload ──────────────────────────────────────────────────────────
+const cpaDropZone = document.getElementById('cpaDropZone');
+const cpaFileInput = document.getElementById('cpaFileInput');
+cpaDropZone.addEventListener('click', e => { e.stopPropagation(); cpaFileInput.click(); });
+cpaDropZone.addEventListener('dragover', e => { e.preventDefault(); cpaDropZone.classList.add('dragover'); });
+cpaDropZone.addEventListener('dragleave', () => cpaDropZone.classList.remove('dragover'));
+cpaDropZone.addEventListener('drop', e => { e.preventDefault(); cpaDropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handleCPAFile(e.dataTransfer.files[0]); });
+cpaFileInput.addEventListener('change', () => { if (cpaFileInput.files.length) handleCPAFile(cpaFileInput.files[0]); });
+
+function handleCPAFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      let text = e.target.result;
+      const lines = text.split(/\r?\n/);
+      let hi = 0;
+      for (let i = 0; i < Math.min(lines.length, 10); i++) {
+        if (lines[i].split(',')[0].trim().length > 0) { hi = i; break; }
+      }
+      if (hi > 0) text = lines.slice(hi).join('\n');
+      const result = Papa.parse(text, { header: true, skipEmptyLines: true, dynamicTyping: true });
+      parsedCPAData = result.data.filter(r => Object.values(r).some(v => v !== null && v !== ''));
+      if (!parsedCPAData.length) throw new Error('No CPA data found');
+      showCPAFieldMapping(Object.keys(parsedCPAData[0]));
+      document.getElementById('cpaDropText').textContent = '\u2713 ' + file.name + ' loaded';
+      document.getElementById('cpaDropZone').style.borderColor = '#10b981';
+    } catch(err) { showError('CPA file: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+function showCPAFieldMapping(columns) {
+  const autoHints = {
+    cpa_map_date: ['date','day'],
+    cpa_map_conv: ['account_created_on_desktop','conversions','conv','purchases','leads','signups','results'],
+    cpa_map_cost: ['cost (gbp)','cost_gbp','cost','spend','amount_spent']
+  };
+  const partialHints = { cpa_map_date:['date'], cpa_map_conv:['conv','account','purchase','lead','result'], cpa_map_cost:['cost','spend'] };
+  const colsLower = columns.map(c => c.toLowerCase().trim());
+  ['cpa_map_date','cpa_map_conv','cpa_map_cost'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">(none)</option>';
+    columns.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+    const hints = autoHints[id] || [];
+    let matched = false;
+    for (const h of hints) { const idx = colsLower.indexOf(h); if (idx >= 0) { sel.value = columns[idx]; matched = true; break; } }
+    if (!matched) { for (const ph of (partialHints[id]||[])) { const idx = colsLower.findIndex(c => c.includes(ph)); if (idx >= 0) { sel.value = columns[idx]; break; } } }
+  });
+  document.getElementById('cpaFieldMap').style.display = 'block';
+  // Auto-apply mapping immediately so user doesn't need extra step
+  applyCPAMapping();
+}
+
+function applyCPAMapping() {
+  if (!parsedCPAData) return;
+  const dateCol = document.getElementById('cpa_map_date').value;
+  const convCol = document.getElementById('cpa_map_conv').value;
+  const costCol = document.getElementById('cpa_map_cost').value;
+  if (!dateCol || !costCol) return;
+  CPA_DATA = {};
+  parsedCPAData.forEach(r => {
+    const date = String(r[dateCol]).slice(0, 10);
+    const conv = convCol ? (parseFloat(r[convCol]) || 0) : 0;
+    const cost = parseFloat(r[costCol]) || 0;
+    if (conv > 0 && cost > 0) CPA_DATA[date] = +(cost / conv).toFixed(2);
+  });
+  // If dashboard is already built, refresh the stacked chart
+  if (RAW.length && chartInstances.stacked) refreshCPALine();
+}
+
+function refreshCPALine() {
+  const chart = chartInstances.stacked;
+  if (!chart) return;
+  const sym = CURRENCY.symbol;
+  // Remove old CPA dataset if present
+  chart.data.datasets = chart.data.datasets.filter(d => d.label !== 'CPA');
+  // Build new CPA data aligned to chart labels
+  const cpaValues = chart.data.labels.map(lbl => {
+    // Convert label back to date — find date in RAW that matches this label
+    const date = [...new Set(RAW.map(r => r.Date))].sort().find(d => fmtDate(d) === lbl);
+    return date && CPA_DATA[date] != null ? CPA_DATA[date] : null;
+  });
+  if (Object.keys(CPA_DATA).length > 0) {
+    chart.data.datasets.push(buildCPADataset(cpaValues));
+    chart.options.scales.y2.display = true;
+  } else {
+    chart.options.scales.y2.display = false;
+  }
+  chart.update();
+  updateCPALegend();
+}
+
+function buildCPADataset(data) {
+  return {
+    label: 'CPA', data,
+    type: 'line', yAxisID: 'y2',
+    borderColor: '#ffffff', backgroundColor: 'transparent',
+    borderWidth: 2, pointRadius: 0, pointHoverRadius: 5,
+    tension: 0.3, fill: false, spanGaps: false, order: -1
+  };
+}
+
+function updateCPALegend() {
+  const el = document.getElementById('cpaLegendItem');
+  if (!el) return;
+  const hasCPA = Object.keys(CPA_DATA).length > 0;
+  el.style.display = hasCPA ? 'flex' : 'none';
+  if (hasCPA) {
+    const vals = Object.values(CPA_DATA);
+    const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+    el.querySelector('.leg-val').textContent = `avg ${CURRENCY.symbol}${avg.toFixed(0)}`;
+  }
+}
+
 function loadDemo() {
-  const cohorts = ['Dataset 1','Dataset 2','Dataset 3','Dataset 4','Dataset 5','Dataset 6'];
+  const cohorts = ['Month 1','Month 2','Month 3','Month 4','Month 5','Month 6'];
   const cohortStarts = ['2025-10-01','2025-11-01','2025-12-01','2026-01-01','2026-02-01','2026-03-01'];
   const adsPerCohort = [5, 5, 4, 4, 4, 3];
   const rows = [];
@@ -454,7 +602,7 @@ function loadDemo() {
   cohorts.forEach((cohort, ci) => {
     const n = adsPerCohort[ci];
     for (let ai = 0; ai < n; ai++) {
-      const adName = `Dataset ${ci * 5 + ai + 1}`;
+      const adName = `Ad ${ci * 5 + ai + 1}`;
       const cohortStart = new Date(cohortStarts[ci]);
       const launchDay = new Date(cohortStart);
       launchDay.setDate(launchDay.getDate() + Math.floor(Math.random() * 15));
@@ -476,6 +624,18 @@ function loadDemo() {
       }
     }
   });
+  // Generate demo CPA data: starts high, improves as new cohorts launch, daily noise
+  CPA_DATA = {};
+  const startCPA = 80 + Math.random() * 40; // starting CPA £80–120
+  const allDemoDates = [...new Set(rows.map(r => r.Date))].sort();
+  allDemoDates.forEach((date, i) => {
+    const trend = startCPA * Math.exp(-0.004 * i);          // gradual improvement
+    const noise = 0.75 + Math.random() * 0.5;               // ±25% daily noise
+    const spike = Math.random() < 0.05 ? 1.8 : 1;          // occasional spike
+    const cpa = +(trend * noise * spike).toFixed(2);
+    if (cpa > 0) CPA_DATA[date] = cpa;
+  });
+
   initDashboard(rows);
 }
 
@@ -485,9 +645,17 @@ function loadDemo() {
 function resetDashboard() {
   Object.values(chartInstances).forEach(c => { if (c && c.destroy) c.destroy(); });
   chartInstances = {}; window._trendChart = null; window._trendState = null;
+  CPA_DATA = {}; parsedCPAData = null;
   document.getElementById('dashboardScreen').style.display = 'none';
   document.getElementById('uploadScreen').style.display = 'flex';
   document.getElementById('fieldMap').style.display = 'none';
+  document.getElementById('buildBtn').style.display = 'none';
+  document.getElementById('cpaFieldMap').style.display = 'none';
+  document.getElementById('cpaDropText').textContent = 'Drop CPA CSV here \u2014 Date + Conversions + Cost (optional)';
+  document.getElementById('cpaDropZone').style.borderColor = '';
+  document.getElementById('dropZone').classList.remove('dragover');
+  document.getElementById('dropZoneText').textContent = 'Drop spend CSV / JSON here';
+  document.getElementById('dropZone').style.borderColor = '';
   parsedRawData = null;
 }
 
@@ -522,7 +690,6 @@ function rebuildDashboard() {
 
 function buildDashboard() {
   const sym = CURRENCY.symbol;
-  const uniqueAds = new Set(RAW.map(r => r.Ad_name)).size;
   const datesSorted = [...new Set(RAW.map(r => r.Date))].sort();
   const dayCount = datesSorted.length;
   const dateRange = dayCount > 0 ? `${fmtMonthYear(datesSorted[0])} \u2013 ${fmtMonthYear(datesSorted[datesSorted.length-1])}` : '';
@@ -530,7 +697,7 @@ function buildDashboard() {
   document.getElementById('dashTitle').textContent = 'Creative Churn Analysis';
   document.getElementById('dashSub').textContent = `Ad spend by creative cohort \u00b7 ${dateRange}`;
   document.getElementById('topBadges').innerHTML = [
-    `${RAW.length.toLocaleString()} Data Points`, `${uniqueAds} Creatives`,
+    `${RAW.length.toLocaleString()} Data Points`,
     `${COHORTS.length} Cohorts`, `${dayCount} Days`
   ].map(t => `<span class="badge">${t}</span>`).join('');
 
@@ -548,7 +715,6 @@ function buildDashboard() {
     { l: 'Peak Daily',   v: `${sym}${Math.round(peakDay).toLocaleString()}`, s: 'Single day high' },
     { l: 'Top Cohort',   v: topCohort.label,                              s: `${sym}${fmtK(topCohort.val)} spend` },
     { l: 'Data Points',  v: RAW.length.toLocaleString(),                  s: 'Individual ad records' },
-    { l: 'Unique Ads',   v: uniqueAds.toLocaleString(),                   s: 'Across all cohorts' },
     { l: 'Days Tracked', v: dayCount.toString(),                          s: `${datesSorted[0] || ''} \u2192 ${datesSorted[datesSorted.length-1] || ''}` }
   ].map(k => `<div class="kpi"><div class="kpi-l">${k.l}</div><div class="kpi-v">${k.v}</div><div class="kpi-s">${k.s}</div></div>`).join('');
 
@@ -556,11 +722,17 @@ function buildDashboard() {
   const labels = dates.map(fmtDate);
 
   // Stacked chart
+  // Build CPA dataset aligned to dates array
+  const cpaValues = dates.map(d => CPA_DATA[d] != null ? CPA_DATA[d] : null);
+  const hasCPA = Object.keys(CPA_DATA).length > 0;
+
   const stackedDs = COHORTS.map(c => ({
     label: c.label + ' Creatives', data: pivot[c.key],
     backgroundColor: c.color + 'bb', borderColor: c.color,
     borderWidth: 1.5, fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 5
   }));
+  if (hasCPA) stackedDs.push(buildCPADataset(cpaValues));
+
   chartInstances.stacked = new Chart(document.getElementById('stackedChart'), {
     type: 'line', data: { labels, datasets: stackedDs },
     options: {
@@ -570,13 +742,26 @@ function buildDashboard() {
         backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
         titleColor: '#c8cde8', bodyColor: '#9ba3cc', padding: 12,
         callbacks: {
-          label: c => ` ${c.dataset.label}: ${sym}${c.parsed.y.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`,
-          footer: items => items.length ? `  Total: ${sym}${items.reduce((s, i) => s + i.parsed.y, 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : ''
+          label: c => {
+            if (c.dataset.label === 'CPA') return ` CPA: ${sym}${c.parsed.y.toFixed(0)}`;
+            return ` ${c.dataset.label}: ${sym}${c.parsed.y.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`;
+          },
+          footer: items => {
+            const spendItems = items.filter(i => i.dataset.label !== 'CPA');
+            return spendItems.length ? `  Total Spend: ${sym}${spendItems.reduce((s, i) => s + i.parsed.y, 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : '';
+          }
         }
       }},
       scales: {
-        x: { stacked: true, grid: { color: '#181b2e' }, ticks: { color: '#555b7e', maxTicksLimit: 12, maxRotation: 0, font: { size: 10 } } },
-        y: { stacked: true, grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` } }
+        x: { stacked: true, grid: { color: '#181b2e' }, ticks: { color: '#555b7e', maxTicksLimit: 12, maxRotation: 0, font: { size: 10 } },
+          title: { display: true, text: 'Date', color: '#555b7e', font: { size: 10 } } },
+        y: { stacked: true, grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` },
+          title: { display: true, text: `Daily Spend (${sym})`, color: '#555b7e', font: { size: 10 } } },
+        y2: { type: 'linear', position: 'right', display: hasCPA, stacked: false,
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#888', font: { size: 10 }, callback: v => `${sym}${v.toFixed(0)}` },
+          title: { display: hasCPA, text: `CPA (${sym})`, color: '#888', font: { size: 10 } }
+        }
       }
     }
   });
@@ -591,6 +776,19 @@ function buildDashboard() {
     el.onclick = () => { const m = chartInstances.stacked.getDatasetMeta(i); m.hidden = !m.hidden; chartInstances.stacked.update(); el.style.opacity = m.hidden ? '.3' : '1'; };
     legendEl.appendChild(el);
   });
+  // CPA legend entry
+  const cpaLegEl = document.createElement('div');
+  cpaLegEl.className = 'leg-item'; cpaLegEl.id = 'cpaLegendItem';
+  cpaLegEl.style.display = hasCPA ? 'flex' : 'none';
+  const cpaAvg = hasCPA ? (Object.values(CPA_DATA).reduce((a,b)=>a+b,0)/Object.values(CPA_DATA).length).toFixed(0) : 0;
+  cpaLegEl.innerHTML = `<div class="leg-dot" style="background:#fff;border-radius:50%"></div><span>CPA (right axis)</span><span class="leg-val">avg ${sym}${cpaAvg}</span>`;
+  cpaLegEl.onclick = () => {
+    const dsIdx = chartInstances.stacked.data.datasets.findIndex(d => d.label === 'CPA');
+    if (dsIdx < 0) return;
+    const m = chartInstances.stacked.getDatasetMeta(dsIdx); m.hidden = !m.hidden;
+    chartInstances.stacked.update(); cpaLegEl.style.opacity = m.hidden ? '.3' : '1';
+  };
+  legendEl.appendChild(cpaLegEl);
 
   buildTrendChart(dates, pivot, grandTotal);
 
@@ -618,8 +816,11 @@ function buildDashboard() {
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: { backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
         callbacks: { label: c => ` ${c.dataset.label}: ${sym}${(c.parsed.y / 1000).toFixed(1)}K` } } },
-      scales: { x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 } } },
-                y: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` } } } }
+      scales: {
+        x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 } },
+          title: { display: true, text: 'Month', color: '#555b7e', font: { size: 10 } } },
+        y: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` },
+          title: { display: true, text: `Spend (${sym})`, color: '#555b7e', font: { size: 10 } } } } }
   });
 
   // Top 15
@@ -637,8 +838,11 @@ function buildDashboard() {
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: { backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
         callbacks: { label: c => ` ${sym}${c.parsed.x.toLocaleString('en-GB', { maximumFractionDigits: 0 })}` } } },
-      scales: { x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 9 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` } },
-                y: { grid: { display: false }, ticks: { color: '#9ba3cc', font: { size: 9 } } } },
+      scales: {
+        x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 9 }, callback: v => `${sym}${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}` },
+          title: { display: true, text: `Total Spend (${sym})`, color: '#555b7e', font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { color: '#9ba3cc', font: { size: 9 } },
+          title: { display: true, text: 'Creative', color: '#555b7e', font: { size: 10 } } } },
       onClick: (_, els) => {
         if (!els.length) activeAdFilter = null;
         else { const n = top15[els[0].index][0]; activeAdFilter = activeAdFilter === n ? null : n; document.getElementById('search').value = activeAdFilter || ''; }
@@ -788,8 +992,7 @@ function findSmoothedFatigue(smoothed,thresholdFrac){
 function buildTrendChart(dates, pivot) {
   const sym = CURRENCY.symbol;
   const DEFAULT_FF = 0.30, SIGMA_MULT = Math.sqrt(-2*Math.log(0.3));
-  const todayStr = new Date().toISOString().slice(0,10);
-  let todayIdx = dates.indexOf(todayStr); if(todayIdx<0) todayIdx=dates.length-1;
+  const lastDataIdx = dates.length - 1;
   const histLen = dates.length;
 
   const rawFits = COHORTS.map(c=>{
@@ -866,10 +1069,10 @@ function buildTrendChart(dates, pivot) {
 
   const todayPlugin={id:'todayLine2',afterDraw(chart){
     if(chart.canvas.id!=='trendChart')return;
-    const xv=dates[Math.min(todayIdx,dates.length-1)],x=chart.scales.x.getPixelForValue(xv),{top,bottom}=chart.chartArea,ctx2=chart.ctx;
+    const xv=dates[lastDataIdx],x=chart.scales.x.getPixelForValue(xv),{top,bottom}=chart.chartArea,ctx2=chart.ctx;
     ctx2.save();ctx2.strokeStyle='#555b7e88';ctx2.lineWidth=1;ctx2.setLineDash([4,3]);
     ctx2.beginPath();ctx2.moveTo(x,top);ctx2.lineTo(x,bottom);ctx2.stroke();ctx2.setLineDash([]);
-    ctx2.fillStyle='#555b7e';ctx2.font='10px system-ui';ctx2.fillText('Today',x+4,top+14);ctx2.restore();
+    ctx2.fillStyle='#555b7e';ctx2.font='10px system-ui';ctx2.fillText('Latest data',x+4,top+14);ctx2.restore();
   }};
 
   chartInstances.trend=new Chart(document.getElementById('trendChart'),{
@@ -878,10 +1081,13 @@ function buildTrendChart(dates, pivot) {
       plugins:{legend:{display:false},tooltip:{backgroundColor:'#13152a',borderColor:'#353760',borderWidth:1,titleColor:'#c8cde8',bodyColor:'#9ba3cc',padding:12,
         filter:item=>item.parsed.y!==null&&item.parsed.y>0&&!item.dataset.label.includes('Peak')&&!item.dataset.label.includes('Fatigue')&&!item.dataset.label.includes('smoothed'),
         callbacks:{label:c=>` ${c.dataset.label}: ${sym}${c.parsed.y.toLocaleString('en-GB',{maximumFractionDigits:0})}`}}},
-      scales:{x:{grid:{color:'#181b2e'},ticks:{color:'#555b7e',maxRotation:0,font:{size:10},autoSkip:false,
-        callback(val,idx){const lbl=allDates[idx];if(!lbl)return'';const d=new Date(lbl),day=d.getDate();
-          if(day===1||day===15)return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});return '';}}},
-        y:{grid:{color:'#181b2e'},ticks:{color:'#555b7e',font:{size:10},callback:v=>`${sym}${v>=1000?(v/1000).toFixed(0)+'K':v}`},min:0}}},
+      scales:{
+        x:{grid:{color:'#181b2e'},ticks:{color:'#555b7e',maxRotation:0,font:{size:10},autoSkip:false,
+          callback(val,idx){const lbl=allDates[idx];if(!lbl)return'';const d=new Date(lbl),day=d.getDate();
+            if(day===1||day===15)return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});return '';}},
+          title:{display:true,text:'Date',color:'#555b7e',font:{size:10}}},
+        y:{grid:{color:'#181b2e'},ticks:{color:'#555b7e',font:{size:10},callback:v=>`${sym}${v>=1000?(v/1000).toFixed(0)+'K':v}`},min:0,
+          title:{display:true,text:`Daily Spend (${sym})`,color:'#555b7e',font:{size:10}}}}},
     plugins:[todayPlugin]
   });
   window._trendChart=chartInstances.trend;
@@ -902,13 +1108,6 @@ function buildTrendChart(dates, pivot) {
   renderTrendLegend(cohortData,allDates);
   window._renderTrendLegend=renderTrendLegend;
 
-  const rawToggle=document.getElementById('rawToggle');
-  const newRaw=rawToggle.cloneNode(true);rawToggle.parentNode.replaceChild(newRaw,rawToggle);
-  let rawOn=false;
-  newRaw.addEventListener('click',function(){rawOn=!rawOn;this.classList.toggle('active',rawOn);
-    this.innerHTML=rawOn?'<span class="tdot"></span> Hide Raw Data':'<span class="tdot" style="background:#555b7e"></span> Show Raw Data';
-    for(let i=rawStart;i<rawStart+rawDs.length;i++)chartInstances.trend.getDatasetMeta(i).hidden=!rawOn;
-    chartInstances.trend.update();});
 
   const trendBtnRow=document.getElementById('trendBtnRow');trendBtnRow.innerHTML='';
   const trendActive=cohortData.map(()=>true);
@@ -977,13 +1176,11 @@ function calcSyncFromGraph(){
   const{cohortData,allDates}=state;
   const cd=cohortData.find(c=>c.c.key===sel.value);if(!cd)return;
   const fd=allDates[cd.fatigueIdx]||'';
-  const dtf=Math.max(1,cd.fatigueIdx-cd.firstIdx);
-  const cs=RAW.filter(r=>r.First_spend_month===cd.c.key&&r.Date<=fd).reduce((s,r)=>s+r.Cost_GBP,0);
   const cohortStartDate=allDates[cd.firstIdx]||'';
+  // Total account spend across ALL cohorts from this cohort's launch to its fatigue point
   const ts=RAW.filter(r=>r.Date>=cohortStartDate&&r.Date<=fd).reduce((s,r)=>s+r.Cost_GBP,0);
-  const al=new Set(RAW.filter(r=>r.First_spend_month===cd.c.key).map(r=>r.Ad_name)).size;
-  document.getElementById('calc_adsLaunched').value=al;
-  document.getElementById('calc_cohortSpend').value=Math.round(cs);
+  // Days from first spend to fatigue
+  const dtf=Math.max(1,cd.fatigueIdx-cd.firstIdx);
   document.getElementById('calc_totalSpend').value=Math.round(ts);
   document.getElementById('calc_daysToFatigue').value=dtf;
   const note=document.getElementById('calc_syncNote');if(note)note.style.display='inline';
@@ -992,20 +1189,21 @@ function calcSyncFromGraph(){
 
 function calcAds(){
   const sym=CURRENCY.symbol,fmtC=n=>sym+Math.round(n).toLocaleString('en-GB');
-  const N=parseFloat(document.getElementById('calc_adsLaunched').value)||0;
-  const S6=parseFloat(document.getElementById('calc_cohortSpend').value)||0;
   const S7=parseFloat(document.getElementById('calc_totalSpend').value)||0;
   const D=parseFloat(document.getElementById('calc_daysToFatigue').value)||1;
   const T=parseFloat(document.getElementById('calc_monthlyTarget').value)||0;
   const scale=parseFloat(document.getElementById('calc_scaleFactor').value)||1;
   document.getElementById('calc_scaleDisplay').textContent=scale.toFixed(1)+'x';
-  const spa=N>0?S6/N:0,sr=S7>0?S6/S7:0,mm=S7*(30/D),ba=spa>0?((T*sr)/spa)*(30/D):0,sa=ba*scale;
+  // Excel formula: =((Target / ModelMonthly) * DaysToFatigue) * Scale
+  // where ModelMonthly = TotalSpend * (30 / DaysToFatigue)
+  const modelMonthly=D>0?S7*(30/D):0;
+  const ba=modelMonthly>0?((T/modelMonthly)*D):0;
+  const sa=ba*scale;
   document.getElementById('calc_results').innerHTML=`
     <div class="rcard hero"><div class="rlabel">Ads needed per month</div><div class="rval hero">${Math.ceil(sa)}</div><div class="runit">after ${scale.toFixed(1)}x scaling</div></div>
     <div class="rcard"><div class="rlabel">Base (unscaled)</div><div class="rval">${Math.ceil(ba)}</div><div class="runit">before scaling factor</div></div>
-    <div class="rcard"><div class="rlabel">Average spend per ad</div><div class="rval">${fmtC(spa)}</div><div class="runit">per creative in cohort</div></div>
-    <div class="rcard"><div class="rlabel">New vs historic split</div><div class="rval">${(sr*100).toFixed(1)}%</div><div class="runit">of spend on new cohort</div></div>
-    <div class="rcard"><div class="rlabel">Model monthly spend</div><div class="rval">${fmtC(mm)}</div><div class="runit">at current fatigue rate</div></div>`;
+    <div class="rcard"><div class="rlabel">Model monthly spend</div><div class="rval">${fmtC(modelMonthly)}</div><div class="runit">at current fatigue rate</div></div>
+    <div class="rcard"><div class="rlabel">Spend ratio</div><div class="rval">${modelMonthly>0?(T/modelMonthly).toFixed(2):'-'}x</div><div class="runit">target &divide; model monthly</div></div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
