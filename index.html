@@ -252,6 +252,16 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
   <div class="card">
     <div class="card-hdr">
       <div>
+        <div class="card-title">Ads Launched per Cohort</div>
+        <div class="card-sub">Unique creatives per month &middot; line = days to fatigue (right axis) &middot; updates with fatigue slider</div>
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:220px"><canvas id="adsPerCohortChart"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div>
         <div class="card-title">Ads Needed Calculator</div>
         <div class="card-sub">How many creatives to upload per month to hit your spend target &mdash; based on cohort fatigue data</div>
       </div>
@@ -513,9 +523,9 @@ function showCPAFieldMapping(columns) {
   const autoHints = {
     cpa_map_date: ['date','day'],
     cpa_map_conv: ['account_created_on_desktop','conversions','conv','purchases','leads','signups','results'],
-    cpa_map_cost: ['cost (gbp)','cost_gbp','cost','spend','amount_spent']
+    cpa_map_cost: ['cost (gbp)','cost_gbp','amount spent (gbp)','cost','spend','amount_spent']
   };
-  const partialHints = { cpa_map_date:['date'], cpa_map_conv:['conv','account','purchase','lead','result'], cpa_map_cost:['cost','spend'] };
+  const partialHints = { cpa_map_date:['date','day'], cpa_map_conv:['conv','account','purchase','lead','result'], cpa_map_cost:['cost','spent','spend','amount'] };
   const colsLower = columns.map(c => c.toLowerCase().trim());
   ['cpa_map_date','cpa_map_conv','cpa_map_cost'].forEach(id => {
     const sel = document.getElementById(id);
@@ -549,25 +559,9 @@ function applyCPAMapping() {
 }
 
 function refreshCPALine() {
-  const chart = chartInstances.stacked;
-  if (!chart) return;
-  const sym = CURRENCY.symbol;
-  // Remove old CPA dataset if present
-  chart.data.datasets = chart.data.datasets.filter(d => d.label !== 'CPA');
-  // Build new CPA data aligned to chart labels
-  const cpaValues = chart.data.labels.map(lbl => {
-    // Convert label back to date — find date in RAW that matches this label
-    const date = [...new Set(RAW.map(r => r.Date))].sort().find(d => fmtDate(d) === lbl);
-    return date && CPA_DATA[date] != null ? CPA_DATA[date] : null;
-  });
-  if (Object.keys(CPA_DATA).length > 0) {
-    chart.data.datasets.push(buildCPADataset(cpaValues));
-    chart.options.scales.y2.display = true;
-  } else {
-    chart.options.scales.y2.display = false;
-  }
-  chart.update();
-  updateCPALegend();
+  // When CPA is uploaded after the dashboard is built, rebuild the whole
+  // stacked chart so the x-axis is extended to cover both date ranges.
+  if (RAW.length) { rebuildDashboard(); return; }
 }
 
 function buildCPADataset(data) {
@@ -718,11 +712,21 @@ function buildDashboard() {
     { l: 'Days Tracked', v: dayCount.toString(),                          s: `${datesSorted[0] || ''} \u2192 ${datesSorted[datesSorted.length-1] || ''}` }
   ].map(k => `<div class="kpi"><div class="kpi-l">${k.l}</div><div class="kpi-v">${k.v}</div><div class="kpi-s">${k.s}</div></div>`).join('');
 
-  const { dates, pivot } = buildPivot(RAW);
+  const { dates: spendDates, pivot: spendPivot } = buildPivot(RAW);
+  // Merge spend dates with CPA dates so both datasets share the same x-axis,
+  // even when the two CSVs cover different date ranges.
+  const cpaDatesArr = Object.keys(CPA_DATA);
+  const dates = [...new Set([...spendDates, ...cpaDatesArr])].sort();
+  // Re-index pivot arrays to match the merged date list
+  const pivot = {};
+  COHORTS.forEach(c => {
+    const spendByDate = {};
+    spendDates.forEach((d, i) => { spendByDate[d] = spendPivot[c.key][i]; });
+    pivot[c.key] = dates.map(d => spendByDate[d] || 0);
+  });
   const labels = dates.map(fmtDate);
 
-  // Stacked chart
-  // Build CPA dataset aligned to dates array
+  // Stacked chart — CPA values aligned to merged dates
   const cpaValues = dates.map(d => CPA_DATA[d] != null ? CPA_DATA[d] : null);
   const hasCPA = Object.keys(CPA_DATA).length > 0;
 
@@ -732,6 +736,64 @@ function buildDashboard() {
     borderWidth: 1.5, fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 5
   }));
   if (hasCPA) stackedDs.push(buildCPADataset(cpaValues));
+
+  // Per-cohort ad counts for peak badges
+  const cohortAdCounts = COHORTS.map(c => new Set(RAW.filter(r => r.First_spend_month === c.key).map(r => r.Ad_name)).size);
+
+  const cohortPeakPlugin = { id: 'cohortPeak', afterDatasetsDraw(chart) {
+    if (chart.canvas.id !== 'stackedChart') return;
+    const ctx2 = chart.ctx;
+    ctx2.save();
+    ctx2.font = 'bold 10px system-ui';
+    ctx2.textAlign = 'center';
+    const h = 14, r = 4, gap = 3;
+    const { top: chartTop } = chart.chartArea;
+
+    // First pass: find each cohort's peak using raw spend values (not stacked pixel)
+    const badges = [];
+    COHORTS.forEach((c, i) => {
+      const meta = chart.getDatasetMeta(i);
+      if (!meta || meta.hidden) return;
+      const dsData = chart.data.datasets[i].data;
+      let peakIdx = 0, peakVal = -Infinity;
+      dsData.forEach((v, idx) => { if (v > peakVal) { peakVal = v; peakIdx = idx; } });
+      if (peakVal <= 0) return;
+      const peakX = meta.data[peakIdx].x;
+      const peakY = meta.data[peakIdx].y; // top of this cohort's stacked segment
+      const adCount = cohortAdCounts[i];
+      const label = `${adCount} ads`;
+      const w = ctx2.measureText(label).width + 10;
+      badges.push({ c, label, w, x: peakX, naturalY: peakY, by: peakY - h - 5 });
+    });
+
+    // Sort highest on chart first so top badges anchor and lower ones get nudged up
+    badges.sort((a, b) => a.naturalY - b.naturalY);
+
+    // Second pass: nudge overlapping badges upward, clamped to chart top
+    const placed = [];
+    badges.forEach(b => {
+      for (let iter = 0; iter < 200; iter++) {
+        let clean = true;
+        for (const p of placed) {
+          const xOv = b.x - b.w / 2 < p.x + p.w / 2 + gap && b.x + b.w / 2 > p.x - p.w / 2 - gap;
+          const yOv = b.by < p.by + h + gap && b.by + h > p.by - gap;
+          if (xOv && yOv) { b.by = p.by - h - gap; clean = false; break; }
+        }
+        if (clean) break;
+      }
+      b.by = Math.max(b.by, chartTop + 2);
+      placed.push(b);
+    });
+
+    // Draw
+    badges.forEach(({ c, label, w, x, by }) => {
+      ctx2.fillStyle = c.color + 'ee';
+      ctx2.beginPath(); ctx2.roundRect(x - w / 2, by, w, h, r); ctx2.fill();
+      ctx2.fillStyle = '#fff';
+      ctx2.fillText(label, x, by + h - 3);
+    });
+    ctx2.restore();
+  }};
 
   chartInstances.stacked = new Chart(document.getElementById('stackedChart'), {
     type: 'line', data: { labels, datasets: stackedDs },
@@ -744,10 +806,11 @@ function buildDashboard() {
         callbacks: {
           label: c => {
             if (c.dataset.label === 'CPA') return ` CPA: ${sym}${c.parsed.y.toFixed(0)}`;
+            if (c.parsed.y === 0) return null;
             return ` ${c.dataset.label}: ${sym}${c.parsed.y.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`;
           },
           footer: items => {
-            const spendItems = items.filter(i => i.dataset.label !== 'CPA');
+            const spendItems = items.filter(i => i.dataset.label !== 'CPA' && i.parsed.y !== 0);
             return spendItems.length ? `  Total Spend: ${sym}${spendItems.reduce((s, i) => s + i.parsed.y, 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : '';
           }
         }
@@ -763,16 +826,19 @@ function buildDashboard() {
           title: { display: hasCPA, text: `CPA (${sym})`, color: '#888', font: { size: 10 } }
         }
       }
-    }
+    },
+    plugins: [cohortPeakPlugin]
   });
 
   const legendEl = document.getElementById('mainLegend');
   legendEl.innerHTML = '';
   COHORTS.forEach((c, i) => {
-    const total = RAW.filter(r => r.First_spend_month === c.key).reduce((s, r) => s + r.Cost_GBP, 0);
+    const cohortRows = RAW.filter(r => r.First_spend_month === c.key);
+    const total = cohortRows.reduce((s, r) => s + r.Cost_GBP, 0);
     const pct = ((total / grandTotal) * 100).toFixed(1);
+    const adCount = new Set(cohortRows.map(r => r.Ad_name)).size;
     const el = document.createElement('div'); el.className = 'leg-item';
-    el.innerHTML = `<div class="leg-dot" style="background:${c.color}"></div><span>${c.label} Creatives</span><span class="leg-val">${sym}${fmtK(total)}</span><span style="color:#555b7e">(${pct}%)</span>`;
+    el.innerHTML = `<div class="leg-dot" style="background:${c.color}"></div><span>${c.label} Creatives</span><span style="font-size:.7rem;color:#555b7e;margin-left:4px">\u00b7 ${adCount} ads</span><span class="leg-val">${sym}${fmtK(total)}</span><span style="color:#555b7e">(${pct}%)</span>`;
     el.onclick = () => { const m = chartInstances.stacked.getDatasetMeta(i); m.hidden = !m.hidden; chartInstances.stacked.update(); el.style.opacity = m.hidden ? '.3' : '1'; };
     legendEl.appendChild(el);
   });
@@ -791,6 +857,52 @@ function buildDashboard() {
   legendEl.appendChild(cpaLegEl);
 
   buildTrendChart(dates, pivot, grandTotal);
+
+  // Ads per cohort bar chart + days-to-fatigue line overlay
+  {
+    const adCounts = COHORTS.map(c => new Set(RAW.filter(r => r.First_spend_month === c.key).map(r => r.Ad_name)).size);
+    const dtfPerCohort = COHORTS.map(c => {
+      if (!window._trendState) return null;
+      const cd = window._trendState.cohortData.find(d => d.c.key === c.key);
+      if (!cd || cd.fatigueIdx === null || cd.stillGrowing || cd.fatigueIsProjected) return null;
+      const { allDates } = window._trendState;
+      const firstDate = RAW.filter(r => r.First_spend_month === c.key).map(r => r.Date).sort()[0];
+      const firstIdx = allDates.indexOf(firstDate);
+      return firstIdx >= 0 ? cd.fatigueIdx - firstIdx : null;
+    });
+    const hasDtf = dtfPerCohort.some(v => v !== null);
+    chartInstances.adsPerCohort = new Chart(document.getElementById('adsPerCohortChart'), {
+      type: 'bar',
+      data: { labels: COHORTS.map(c => c.label),
+        datasets: [
+          { type: 'bar', label: 'Ads launched', data: adCounts,
+            backgroundColor: COHORTS.map(c => c.color + 'bb'), borderColor: COHORTS.map(c => c.color),
+            borderWidth: 1, borderRadius: 5, yAxisID: 'y' },
+          ...(hasDtf ? [{ type: 'line', label: 'Days to fatigue', data: dtfPerCohort,
+            borderColor: '#f59e0b', backgroundColor: '#f59e0b22', pointBackgroundColor: '#f59e0b',
+            pointRadius: 5, pointHoverRadius: 7, borderWidth: 2, tension: 0.3,
+            spanGaps: true, yAxisID: 'y2' }] : [])
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: hasDtf, labels: { color: '#9ba3cc', font: { size: 11 }, boxWidth: 12, padding: 10 } },
+          tooltip: { backgroundColor: '#13152a', borderColor: '#353760', borderWidth: 1,
+            titleColor: '#c8cde8', bodyColor: '#9ba3cc', padding: 10,
+            callbacks: { label: c => c.dataset.label === 'Days to fatigue'
+              ? (c.parsed.y !== null ? ` Days to fatigue: ${c.parsed.y}d` : null)
+              : ` Ads launched: ${c.parsed.y}` } } },
+        scales: {
+          x: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 } },
+            title: { display: true, text: 'Cohort', color: '#555b7e', font: { size: 10 } } },
+          y: { grid: { color: '#181b2e' }, ticks: { color: '#555b7e', font: { size: 10 } },
+            title: { display: true, text: 'Ads launched', color: '#555b7e', font: { size: 10 } } },
+          ...(hasDtf ? { y2: { type: 'linear', position: 'right', grid: { drawOnChartArea: false },
+            ticks: { color: '#f59e0b', font: { size: 10 }, callback: v => `${v}d` },
+            title: { display: true, text: 'Days to fatigue', color: '#f59e0b', font: { size: 10 } } } } : {})
+        }
+      }
+    });
+  }
 
   // Donut
   const cohortTotals = COHORTS.map(c => RAW.filter(r => r.First_spend_month === c.key).reduce((s, r) => s + r.Cost_GBP, 0));
@@ -1096,11 +1208,13 @@ function buildTrendChart(dates, pivot) {
     const tl=document.getElementById('trendLegend');tl.innerHTML='';
     cdArr.forEach(cd=>{
       const pdl=adArr[cd.peakDateIdx]||'',fdl=cd.fatigueIdx!==null?(adArr[cd.fatigueIdx]||''):'';
+      const adCount=new Set(RAW.filter(r=>r.First_spend_month===cd.c.key).map(r=>r.Ad_name)).size;
+      const adLabel=`<span style="font-size:.7rem;color:#888;margin-left:6px">\u00b7 ${adCount} ad${adCount!==1?'s':''}</span>`;
 
       const el=document.createElement('div');el.className='leg-item';
-      if(cd.stillGrowing){el.innerHTML=`<div class="leg-dot" style="background:${cd.c.color}"></div><span>${cd.c.label} Creatives</span><span class="leg-val" style="font-size:.7rem;color:#f59e0b">\u2197 Still rising \u2014 no peak found yet \u00b7 last ${sym}${(cd.peakVal/1000).toFixed(1)}K</span>`;}
+      if(cd.stillGrowing){el.innerHTML=`<div class="leg-dot" style="background:${cd.c.color}"></div><span>${cd.c.label} Creatives</span>${adLabel}<span class="leg-val" style="font-size:.7rem;color:#f59e0b">\u2197 Still rising \u2014 no peak found yet \u00b7 last ${sym}${(cd.peakVal/1000).toFixed(1)}K</span>`;}
       else{const pc=cd.peakIsProjected?'#f59e0b':'#10b981',pp=cd.peakIsProjected?'\u2605 Est. peak':'\u2605 Peak';
-        el.innerHTML=`<div class="leg-dot" style="background:${cd.c.color}"></div><span>${cd.c.label} Creatives</span><span class="leg-val" style="font-size:.7rem;color:${pc}">${pp} ${sym}${(cd.peakVal/1000).toFixed(1)}K on ${pdl}</span>`
+        el.innerHTML=`<div class="leg-dot" style="background:${cd.c.color}"></div><span>${cd.c.label} Creatives</span>${adLabel}<span class="leg-val" style="font-size:.7rem;color:${pc}">${pp} ${sym}${(cd.peakVal/1000).toFixed(1)}K on ${pdl}</span>`
           +(fdl?`<span style="font-size:.7rem;color:${cd.fatigueIsProjected?'#f59e0b':'#ef4444'};margin-left:8px">\u2B25 Fatigue ${cd.fatigueIsProjected?'(est.) ':''}${fdl}</span>`:'');}
       tl.appendChild(el);
     });
@@ -1126,6 +1240,25 @@ function buildTrendChart(dates, pivot) {
     });
     trendBtnRow.appendChild(btn);
   });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADS PER COHORT — DTF LINE UPDATE
+// ═══════════════════════════════════════════════════════════════════════════════
+function updateAdsPerCohortDTF(){
+  const chart=chartInstances.adsPerCohort;
+  if(!chart||!window._trendState)return;
+  const{cohortData,allDates}=window._trendState;
+  const dtfDs=chart.data.datasets.find(d=>d.label==='Days to fatigue');
+  if(!dtfDs)return;
+  dtfDs.data=COHORTS.map(c=>{
+    const cd=cohortData.find(d=>d.c.key===c.key);
+    if(!cd||cd.fatigueIdx===null||cd.stillGrowing)return null;
+    const firstDate=RAW.filter(r=>r.First_spend_month===c.key).map(r=>r.Date).sort()[0];
+    const fi=allDates.indexOf(firstDate);
+    return fi>=0?cd.fatigueIdx-fi:null;
+  });
+  chart.update();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1162,6 +1295,7 @@ function updateFatigueThreshold(pct){
   });
   chart.update('none');
   window._renderTrendLegend(cohortData,allDates);
+  updateAdsPerCohortDTF();
   calcSyncFromGraph();
   buildAISummary();
 }
@@ -1199,11 +1333,42 @@ function calcAds(){
   const modelMonthly=D>0?S7*(30/D):0;
   const ba=modelMonthly>0?((T/modelMonthly)*D):0;
   const sa=ba*scale;
+
+  // Average across all cohorts: avg total spend per cohort, avg days to fatigue
+  let avgRow='';
+  if(RAW.length&&COHORTS.length){
+    const cohortSpends=COHORTS.map(c=>RAW.filter(r=>r.First_spend_month===c.key).reduce((s,r)=>s+r.Cost_GBP,0));
+    const avgS=cohortSpends.reduce((a,b)=>a+b,0)/COHORTS.length;
+    let avgD=D; // fall back to user input if no fatigue data
+    if(window._trendState){
+      const dtfs=window._trendState.cohortData.map(cd=>{
+        if(cd.fatigueIdx===null||cd.stillGrowing||cd.fatigueIsProjected)return null;
+        const{allDates}=window._trendState;
+        const firstDate=RAW.filter(r=>r.First_spend_month===cd.c.key).map(r=>r.Date).sort()[0];
+        const fi=allDates.indexOf(firstDate);
+        return fi>=0?cd.fatigueIdx-fi:null;
+      }).filter(v=>v!==null);
+      if(dtfs.length)avgD=dtfs.reduce((a,b)=>a+b,0)/dtfs.length;
+    }
+    const avgModel=avgD>0?avgS*(30/avgD):0;
+    const avgBa=avgModel>0?((T/avgModel)*avgD):0;
+    const avgSa=avgBa*scale;
+    avgRow=`<div style="margin-top:14px;padding-top:14px;border-top:1px solid #212440">
+      <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.7px;color:#555b7e;margin-bottom:8px">All-cohort average baseline &mdash; avg spend ${fmtC(Math.round(avgS))}, avg ${Math.round(avgD)}d to fatigue</div>
+      <div class="calc-results" style="margin-top:0">
+        <div class="rcard hero" style="border-color:#7c3aed"><div class="rlabel">Avg-based ads/month</div><div class="rval" style="color:#a78bfa">${Math.ceil(avgSa)}</div><div class="runit">after ${scale.toFixed(1)}x scaling</div></div>
+        <div class="rcard"><div class="rlabel">Avg base (unscaled)</div><div class="rval">${Math.ceil(avgBa)}</div><div class="runit">before scaling factor</div></div>
+        <div class="rcard"><div class="rlabel">Avg model monthly</div><div class="rval">${fmtC(avgModel)}</div><div class="runit">at avg fatigue rate</div></div>
+        <div class="rcard"><div class="rlabel">Avg spend ratio</div><div class="rval">${avgModel>0?(T/avgModel).toFixed(2):'-'}x</div><div class="runit">target &divide; avg monthly</div></div>
+      </div></div>`;
+  }
+
   document.getElementById('calc_results').innerHTML=`
     <div class="rcard hero"><div class="rlabel">Ads needed per month</div><div class="rval hero">${Math.ceil(sa)}</div><div class="runit">after ${scale.toFixed(1)}x scaling</div></div>
     <div class="rcard"><div class="rlabel">Base (unscaled)</div><div class="rval">${Math.ceil(ba)}</div><div class="runit">before scaling factor</div></div>
     <div class="rcard"><div class="rlabel">Model monthly spend</div><div class="rval">${fmtC(modelMonthly)}</div><div class="runit">at current fatigue rate</div></div>
-    <div class="rcard"><div class="rlabel">Spend ratio</div><div class="rval">${modelMonthly>0?(T/modelMonthly).toFixed(2):'-'}x</div><div class="runit">target &divide; model monthly</div></div>`;
+    <div class="rcard"><div class="rlabel">Spend ratio</div><div class="rval">${modelMonthly>0?(T/modelMonthly).toFixed(2):'-'}x</div><div class="runit">target &divide; model monthly</div></div>
+    `+avgRow;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
