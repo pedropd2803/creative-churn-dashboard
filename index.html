@@ -281,6 +281,7 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
       <div class="calc-grid">
         <div class="calc-field"><label>Total account spend in period</label><input type="number" id="calc_totalSpend" value="0" min="0" oninput="calcAds()"></div>
         <div class="calc-field"><label>Days to fatigue</label><input type="number" id="calc_daysToFatigue" value="1" min="1" oninput="calcAds()"></div>
+        <div class="calc-field"><label>Ads launched in cohort</label><input type="number" id="calc_adsInCohort" value="" min="0" placeholder="auto-filled or enter manually" oninput="calcAds()"></div>
       </div>
     </div>
     <div class="calc-section">
@@ -304,9 +305,9 @@ input.calc-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;back
       <div class="calc-section-title"><span class="calc-step">4</span> Results</div>
       <div class="calc-results" id="calc_results"></div>
       <div class="calc-assumptions">
-        <p><span class="calc-dot"></span>Formula: ((Target &divide; Model Monthly) &times; Days to Fatigue) &times; Scale</p>
+        <p><span class="calc-dot"></span>Formula: (Target &divide; Model Monthly) &times; Ads in Cohort &times; Scale</p>
         <p><span class="calc-dot"></span>Model Monthly = Total Account Spend &times; (30 &divide; Days to Fatigue)</p>
-        <p><span class="calc-dot"></span>Total account spend and days to fatigue are auto-filled from the selected cohort</p>
+        <p><span class="calc-dot"></span>All cohort fields are auto-filled from the selected cohort above</p>
       </div>
     </div>
   </div>
@@ -547,11 +548,12 @@ function applyCPAMapping() {
   const convCol = document.getElementById('cpa_map_conv').value;
   const costCol = document.getElementById('cpa_map_cost').value;
   if (!dateCol || !costCol) return;
+  const cleanNum = v => parseFloat(String(v ?? '').replace(/[£$€,\s]/g, '')) || 0;
   CPA_DATA = {};
   parsedCPAData.forEach(r => {
     const date = String(r[dateCol]).slice(0, 10);
-    const conv = convCol ? (parseFloat(r[convCol]) || 0) : 0;
-    const cost = parseFloat(r[costCol]) || 0;
+    const conv = convCol ? cleanNum(r[convCol]) : 0;
+    const cost = cleanNum(r[costCol]);
     if (conv > 0 && cost > 0) CPA_DATA[date] = +(cost / conv).toFixed(2);
   });
   // If dashboard is already built, refresh the stacked chart
@@ -639,7 +641,8 @@ function loadDemo() {
 function resetDashboard() {
   Object.values(chartInstances).forEach(c => { if (c && c.destroy) c.destroy(); });
   chartInstances = {}; window._trendChart = null; window._trendState = null;
-  CPA_DATA = {}; parsedCPAData = null;
+  CPA_DATA = {}; parsedCPAData = null; parsedRawData = null;
+  RAW = []; COHORTS = []; COHORT_MAP = {};
   document.getElementById('dashboardScreen').style.display = 'none';
   document.getElementById('uploadScreen').style.display = 'flex';
   document.getElementById('fieldMap').style.display = 'none';
@@ -650,7 +653,9 @@ function resetDashboard() {
   document.getElementById('dropZone').classList.remove('dragover');
   document.getElementById('dropZoneText').textContent = 'Drop spend CSV / JSON here';
   document.getElementById('dropZone').style.borderColor = '';
-  parsedRawData = null;
+  // Reset file inputs so re-selecting the same file fires the change event
+  document.getElementById('fileInput').value = '';
+  document.getElementById('cpaFileInput').value = '';
 }
 
 function initDashboard(rows) {
@@ -1315,8 +1320,10 @@ function calcSyncFromGraph(){
   const ts=RAW.filter(r=>r.Date>=cohortStartDate&&r.Date<=fd).reduce((s,r)=>s+r.Cost_GBP,0);
   // Days from first spend to fatigue
   const dtf=Math.max(1,cd.fatigueIdx-cd.firstIdx);
+  const adsInCohort=new Set(RAW.filter(r=>r.First_spend_month===sel.value).map(r=>r.Ad_name)).size;
   document.getElementById('calc_totalSpend').value=Math.round(ts);
   document.getElementById('calc_daysToFatigue').value=dtf;
+  document.getElementById('calc_adsInCohort').value=adsInCohort;
   const note=document.getElementById('calc_syncNote');if(note)note.style.display='inline';
   calcAds();
 }
@@ -1325,21 +1332,24 @@ function calcAds(){
   const sym=CURRENCY.symbol,fmtC=n=>sym+Math.round(n).toLocaleString('en-GB');
   const S7=parseFloat(document.getElementById('calc_totalSpend').value)||0;
   const D=parseFloat(document.getElementById('calc_daysToFatigue').value)||1;
+  const A=parseFloat(document.getElementById('calc_adsInCohort').value)||null;
   const T=parseFloat(document.getElementById('calc_monthlyTarget').value)||0;
   const scale=parseFloat(document.getElementById('calc_scaleFactor').value)||1;
   document.getElementById('calc_scaleDisplay').textContent=scale.toFixed(1)+'x';
-  // Excel formula: =((Target / ModelMonthly) * DaysToFatigue) * Scale
-  // where ModelMonthly = TotalSpend * (30 / DaysToFatigue)
+  // Excel formula H12: =(H10/H9)*H4*H11
+  // where H9 (Model Monthly) = TotalSpend * (30 / DaysToFatigue), H4 = ads in cohort
   const modelMonthly=D>0?S7*(30/D):0;
-  const ba=modelMonthly>0?((T/modelMonthly)*D):0;
+  const ba=modelMonthly>0&&A!==null?((T/modelMonthly)*A):0;
   const sa=ba*scale;
+  const noAdsWarning=A===null?`<div style="margin-top:10px;font-size:.75rem;color:#f59e0b">\u26a0 Enter &ldquo;Ads launched in cohort&rdquo; above, or select a cohort to auto-fill</div>`:'';
 
-  // Average across all cohorts: avg total spend per cohort, avg days to fatigue
+  // Average across all cohorts: avg account spend, avg days to fatigue, avg ads per cohort
   let avgRow='';
   if(RAW.length&&COHORTS.length){
     const cohortSpends=COHORTS.map(c=>RAW.filter(r=>r.First_spend_month===c.key).reduce((s,r)=>s+r.Cost_GBP,0));
     const avgS=cohortSpends.reduce((a,b)=>a+b,0)/COHORTS.length;
-    let avgD=D; // fall back to user input if no fatigue data
+    const avgA=COHORTS.reduce((sum,c)=>sum+new Set(RAW.filter(r=>r.First_spend_month===c.key).map(r=>r.Ad_name)).size,0)/COHORTS.length;
+    let avgD=D;
     if(window._trendState){
       const dtfs=window._trendState.cohortData.map(cd=>{
         if(cd.fatigueIdx===null||cd.stillGrowing||cd.fatigueIsProjected)return null;
@@ -1351,10 +1361,10 @@ function calcAds(){
       if(dtfs.length)avgD=dtfs.reduce((a,b)=>a+b,0)/dtfs.length;
     }
     const avgModel=avgD>0?avgS*(30/avgD):0;
-    const avgBa=avgModel>0?((T/avgModel)*avgD):0;
+    const avgBa=avgModel>0?((T/avgModel)*avgA):0;
     const avgSa=avgBa*scale;
     avgRow=`<div style="margin-top:14px;padding-top:14px;border-top:1px solid #212440">
-      <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.7px;color:#555b7e;margin-bottom:8px">All-cohort average baseline &mdash; avg spend ${fmtC(Math.round(avgS))}, avg ${Math.round(avgD)}d to fatigue</div>
+      <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.7px;color:#555b7e;margin-bottom:8px">All-cohort average baseline &mdash; avg spend ${fmtC(Math.round(avgS))}, avg ${Math.round(avgD)}d to fatigue, avg ${Math.round(avgA)} ads/cohort</div>
       <div class="calc-results" style="margin-top:0">
         <div class="rcard hero" style="border-color:#7c3aed"><div class="rlabel">Avg-based ads/month</div><div class="rval" style="color:#a78bfa">${Math.ceil(avgSa)}</div><div class="runit">after ${scale.toFixed(1)}x scaling</div></div>
         <div class="rcard"><div class="rlabel">Avg base (unscaled)</div><div class="rval">${Math.ceil(avgBa)}</div><div class="runit">before scaling factor</div></div>
@@ -1364,11 +1374,11 @@ function calcAds(){
   }
 
   document.getElementById('calc_results').innerHTML=`
-    <div class="rcard hero"><div class="rlabel">Ads needed per month</div><div class="rval hero">${Math.ceil(sa)}</div><div class="runit">after ${scale.toFixed(1)}x scaling</div></div>
-    <div class="rcard"><div class="rlabel">Base (unscaled)</div><div class="rval">${Math.ceil(ba)}</div><div class="runit">before scaling factor</div></div>
+    <div class="rcard hero"><div class="rlabel">Ads needed per month</div><div class="rval hero">${A!==null?Math.ceil(sa):'-'}</div><div class="runit">after ${scale.toFixed(1)}x scaling</div></div>
+    <div class="rcard"><div class="rlabel">Base (unscaled)</div><div class="rval">${A!==null?Math.ceil(ba):'-'}</div><div class="runit">before scaling factor</div></div>
     <div class="rcard"><div class="rlabel">Model monthly spend</div><div class="rval">${fmtC(modelMonthly)}</div><div class="runit">at current fatigue rate</div></div>
     <div class="rcard"><div class="rlabel">Spend ratio</div><div class="rval">${modelMonthly>0?(T/modelMonthly).toFixed(2):'-'}x</div><div class="runit">target &divide; model monthly</div></div>
-    `+avgRow;
+    `+noAdsWarning+avgRow;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
